@@ -20,8 +20,7 @@ while (mega.UserData.Count <= samples)
     data = readline(mega);
     mega.UserData.Data(end+1) = str2double(data);
     mega.UserData.Count = mega.UserData.Count + 1;
-    plot(mega.UserData.Data(2:end));
 end
 
-% plot(mega.UserData.Data(2:end));
+plot(mega.UserData.Data(2:end));
 clear mega

@@ -16,7 +16,7 @@ void setup() {
 
   Serial.begin(9600); // setting the baud rate
   val = analogRead(analogPin);
-  delay(1000);
+  delay(100);
 }
 
 void loop() {
@@ -25,5 +25,5 @@ void loop() {
   Serial.print(val);
   Serial.write(13);
   Serial.write(10);
-  delay(5);
+  delay(1); // ms
 }
