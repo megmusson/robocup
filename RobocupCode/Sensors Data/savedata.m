@@ -2,8 +2,8 @@ close all
 clear
 clc
 %% Setting up parameters
-mega = serialport("COM8", 9600)
-samples = 1000;
+mega = serialport("COM8", 9600);
+samples = 5000;
 eachRead  = 1;
 saved = zeros(samples,2);
 i = 1;
@@ -20,8 +20,8 @@ while (mega.UserData.Count <= samples)
     data = readline(mega);
     mega.UserData.Data(end+1) = str2double(data);
     mega.UserData.Count = mega.UserData.Count + 1;
-    plot(mega.UserData.Data(2:end));
+
 end
 
-% plot(mega.UserData.Data(2:end));
+plot(mega.UserData.Data(2:end));
 clear mega

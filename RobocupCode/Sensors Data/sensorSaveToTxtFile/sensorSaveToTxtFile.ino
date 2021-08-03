@@ -2,7 +2,7 @@
 
 #define AVERAGE false
 
-int analogPin = A0; // setting the read pin to A0
+int analogPin = A1; // setting the read pin to A0
 int switchPin1 = 43;
 long samples = 10;
 long val; // assigning val as int
@@ -25,5 +25,5 @@ void loop() {
   Serial.print(val);
   Serial.write(13);
   Serial.write(10);
-  delay(1); // ms
+  delayMicroseconds(10); 
 }
