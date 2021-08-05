@@ -1,3 +1,4 @@
+#include <Filters.h>
 
 int analogPin = A1; // setting the read pin to A0
 int switchPin1 = 43;
