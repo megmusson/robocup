@@ -2,10 +2,9 @@ close all
 clear
 clc
 %% Setting up parameters
-mega = serialport("COM7", 9600);
+mega = serialport("COM21", 9600);
 samples = 1000;
 eachRead  = 1;
-saved = zeros(samples,2);
 i = 1;
 
 %% Set up code
@@ -22,6 +21,6 @@ while (mega.UserData.Count <= samples)
     mega.UserData.Count = mega.UserData.Count + 1;
 
 end
-
-plot(mega.UserData.Data(2:end));
+saved = mega.UserData.Data(1:end);
+plot(saved);
 clear mega
