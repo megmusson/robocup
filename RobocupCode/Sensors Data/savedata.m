@@ -2,7 +2,7 @@ close all
 clear
 clc
 %% Setting up parameters
-mega = serialport("COM21", 9600);
+mega = serialport("COM43", 9600);
 samples = 1000;
 eachRead  = 1;
 i = 1;

@@ -1,6 +1,6 @@
 #define CIRCBUFFSIZE 50
 
-int analogPin = A1; // setting the read pin to A0
+int analogPin = A1; // setting the read pin
 int switchPin1 = 43;
 long samples = 10;
 long val; // assigning val as int
