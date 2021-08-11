@@ -41,13 +41,14 @@ class mySense
       buffCount = buffCount % CIRCBUFFSIZE;
       
       
-      avg = ((runSum*100)/CIRCBUFFSIZE) / 100;
+      avg = ((runSum*1000)/CIRCBUFFSIZE) / 1000;
     }
     
 };
 
 mySense lsensr(leftsensePin);
 mySense rsensr(rightsensePin);
+
 void setup() {
   pinMode(49, OUTPUT);                 //Pin 49 is used to enable IO power
   digitalWrite(49, 1);                 //Enable IO power on main CPU board
