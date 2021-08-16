@@ -43,7 +43,6 @@ class mySense
       buffCount = buffCount % CIRCBUFFSIZE;
 
       avg = ((runSum*1000)/CIRCBUFFSIZE) / 1000;
-      Serial.print(avg);
     }
     
 };
@@ -65,10 +64,10 @@ void setup() {
 
 void loop() {
   lsensr.poll();
-  Serial.print(",");
   rsensr.poll();
-  Serial.print("\n");
-//  Serial.println(" mV");
+  Serial.print(lsensr.avg);
+  Serial.print(",");
+  Serial.println(rsensr.avg);
   
   delay(10);
 }
