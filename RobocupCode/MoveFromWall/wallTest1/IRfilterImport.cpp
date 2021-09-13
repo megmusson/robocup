@@ -18,3 +18,8 @@ void mySense::poll() {
 
   avg = ((runSum * 1000) / CIRCBUFFSIZE) / 1000;
 }
+
+int mySense::voltage() {
+  int voltage;
+  return voltage = avg * (5000 / 1023);
+}

@@ -16,6 +16,8 @@ public:
 	int val;
 
 	void poll();
+
+  int voltage();
 };
 
 #endif
