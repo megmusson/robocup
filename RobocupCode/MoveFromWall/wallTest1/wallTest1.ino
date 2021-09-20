@@ -52,8 +52,8 @@ void setup() { // runs once at the begining
 
 void go_forward() {
   Serial.print("GO FORWARD");
-  servoMotorLeft.writeMicroseconds(1900);
-  servoMotorRight.writeMicroseconds(1900);
+  servoMotorLeft.writeMicroseconds(2100);
+  servoMotorRight.writeMicroseconds(2100);
 }
 
 void go_back() {
@@ -133,28 +133,6 @@ else if ((frsensr.avg > 350)  || (flsensr.avg > 350)) {
 }
 
 
-// Differential Height Sensor Detection
-  tsensr.poll();
-  bsensr.poll();
-  
-//  Serial.print(tsensr.voltage());
-//  Serial.print(",");
-//  Serial.println(bsensr.voltage());
-  
-  compare = bsensr.avg - tsensr.avg;
-  Serial.print(compare);
-  Serial.print(" - ");
-  if (compare>DIFF_HEIGHT_RATIO) {
-    Serial.println("Weight Detected!");
-    stationary();
-    int detected_pos = myservo.read();
-    myservo.write(detected_pos);
-  } else {
-    Serial.println("No Weight Detected sad emoji");
-  }
-  delay(10);
-
-
 
 //DIFFERENTIAL HEIGHT servo 
 int pos = 0;
@@ -169,6 +147,36 @@ for (pos = 180; pos >= 0; pos -=1) {  // goes from 180 degrees to 0 degrees
   delay(15);
 }
 
+
+
+
+
+// Differential Height Sensor Detection
+  tsensr.poll();
+  bsensr.poll();
+  
+//  Serial.print(tsensr.voltage());
+//  Serial.print(",");
+//  Serial.println(bsensr.voltage());
+  
+  compare = bsensr.avg - tsensr.avg;
+  Serial.print(compare);
+  Serial.print(" - ");
+  if (compare>DIFF_HEIGHT_RATIO) {
+    Serial.println("Weight Detected!");
+    stationary();
+    //int detected_pos = myservo.read();
+    myservo.write(90);
+  } else {
+    Serial.println("No Weight Detected sad emoji");
+  }
+
+  Serial.print("Bottom:");
+  Serial.print(bsensr.avg);
+  Serial.print(", ");
+  Serial.print("Top:");
+  Serial.print(tsensr.avg);
+  Serial.print(", ");
 
 
 
@@ -203,5 +211,5 @@ for (pos = 180; pos >= 0; pos -=1) {  // goes from 180 degrees to 0 degrees
  
 //  Serial.write(13);
 //  Serial.write(10);
-  delay(10); 
+
 }
