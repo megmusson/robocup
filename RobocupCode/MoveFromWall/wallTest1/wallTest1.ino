@@ -147,7 +147,8 @@ else if ((frsensr.avg > 350)  || (flsensr.avg > 350)) {
   if (compare>DIFF_HEIGHT_RATIO) {
     Serial.println("Weight Detected!");
     stationary();
-    servo.write()
+    int detected_pos = myservo.read();
+    myservo.write(detected_pos);
   } else {
     Serial.println("No Weight Detected sad emoji");
   }
