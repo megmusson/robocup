@@ -74,6 +74,12 @@ void turn_right(){
   servoMotorLeft.writeMicroseconds(2000);
 }
 
+void stationary(){
+  Serial.print("STOP");
+  servoMotorRight.writeMicroseconds(1100);      
+  servoMotorLeft.writeMicroseconds(1100);
+}
+
 
 void loop() {
   rsensr.poll();
@@ -127,7 +133,7 @@ else if ((frsensr.avg > 350)  || (flsensr.avg > 350)) {
 }
 
 
-// differential height sensor
+// Differential Height Sensor Detection
   tsensr.poll();
   bsensr.poll();
   
@@ -140,11 +146,12 @@ else if ((frsensr.avg > 350)  || (flsensr.avg > 350)) {
   Serial.print(" - ");
   if (compare>DIFF_HEIGHT_RATIO) {
     Serial.println("Weight Detected!");
+    stationary();
+    int detected_pos = myservo.read();
+    myservo.write(detected_pos);
   } else {
     Serial.println("No Weight Detected sad emoji");
   }
-
-
   delay(10);
 
 
