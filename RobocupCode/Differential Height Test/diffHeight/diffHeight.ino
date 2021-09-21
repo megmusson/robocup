@@ -3,8 +3,8 @@
 #define DIFF_HEIGHT_RATIO 80
 #define SENSOR_RATIO_CAL 20
 
-int topSensor = A10; // green LED
-int botSensor = A11; // red LED
+int topSensor = A5; // green LED 10
+int botSensor = A4; // red LED 11
 
 long compare;
 mySense tsensr(topSensor);
