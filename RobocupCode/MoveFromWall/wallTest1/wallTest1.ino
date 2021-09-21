@@ -14,6 +14,9 @@ int analogPin3 = A3; //FRONT LEFT
 int topSensor = A5; // green LED (differenetial height)
 int botSensor = A4; // red LED
 
+int pos = 0;        // position of servo
+bool directFlag = 0;// flag for servo
+
 Servo servoMotorLeft;      // create servo object to control a servo
 Servo servoMotorRight;      // create servo object to control a servo
 Servo myservo;            // for differential height servo
@@ -51,33 +54,33 @@ void setup() { // runs once at the begining
 }
 
 void go_forward() {
-  Serial.print("GO FORWARD");
+  Serial.print("GO FORWARD ");
   servoMotorLeft.writeMicroseconds(2100);
   servoMotorRight.writeMicroseconds(2100);
 }
 
 void go_back() {
-  Serial.print("GO BACKWARDS");
+  Serial.print("GO BACKWARDS ");
   servoMotorLeft.writeMicroseconds(1100);
   servoMotorRight.writeMicroseconds(1100);
 }
 
 void turn_left(){
-  Serial.print("TURN LEFT");
+  Serial.print("TURN LEFT ");
   servoMotorLeft.writeMicroseconds(1100);      //Forward Slow  
   servoMotorRight.writeMicroseconds(2000);
 }
 
 void turn_right(){
-  Serial.print("TURN LEFT");
+  Serial.print("TURN RIGHT ");
   servoMotorRight.writeMicroseconds(1100);      //Forward Slow  
   servoMotorLeft.writeMicroseconds(2000);
 }
 
 void stationary(){
-  Serial.print("STOP");
-  servoMotorRight.writeMicroseconds(1100);      
-  servoMotorLeft.writeMicroseconds(1100);
+  Serial.print("STOP ");
+  servoMotorRight.writeMicroseconds(1500);      
+  servoMotorLeft.writeMicroseconds(1500);
 }
 
 
@@ -102,73 +105,86 @@ void loop() {
   delayMicroseconds(100); 
 
 
-////CASE 1 MOVE FORWARD BOTH SENSORS SEE NOTHING
-if ((frsensr.avg < 350)  && (flsensr.avg < 350)) {
-  go_forward();
-}
-
-// CASE If either front sensor detect somthing
-else if ((frsensr.avg > 350)  || (flsensr.avg > 350)) {
-  
-  // Check if right sensor detects something, turn left if so
-  if ((rsensr.avg > 50) && (lsensr.avg < 50))  {
-    turn_left();
-  }
-  
-  // Check if left sensor detects something, turn right if so
-  if ((rsensr.avg < 50) && (lsensr.avg > 50))  {
-    turn_right();
-  }
-  
-  // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
-  if ((rsensr.avg < 50) && (lsensr.avg < 50))  {
-    turn_left();
+  ////CASE 1 MOVE FORWARD BOTH SENSORS SEE NOTHING
+  if ((frsensr.avg < 350)  && (flsensr.avg < 350)) {
+    go_forward();
   }
 
-  // If both left and right sensor detects something
-  if ((rsensr.avg > 50) && (lsensr.avg > 50))  {
-    go_back(); 
-  }
+  // CASE If either front sensor detect somthing
+  else if ((frsensr.avg > 350)  || (flsensr.avg > 350)) {
   
-}
+    // Check if right sensor detects something, turn left if so
+    if ((rsensr.avg > 50) && (lsensr.avg < 50))  {
+      turn_left();
+    }
+  
+    // Check if left sensor detects something, turn right if so
+    if ((rsensr.avg < 50) && (lsensr.avg > 50))  {
+      turn_right();
+    }
+  
+    // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
+    if ((rsensr.avg < 50) && (lsensr.avg < 50))  {
+      turn_left();
+    }
+
+    // If both left and right sensor detects something
+    if ((rsensr.avg > 50) && (lsensr.avg > 50))  {
+      go_back(); 
+    }
+  
+  }
 
 
 
-//DIFFERENTIAL HEIGHT servo 
-int pos = 0;
+ // DIFFERENTIAL HEIGH SERVO ROTATION
+  if (pos < 1) {
+    directFlag = 0;
+    Serial.println("directFlag = 0");
+  }
+  if (pos > 179) {
+    directFlag = 1;
+  }
 
-for (pos = 0; pos <=180; pos += 1) {  // goes from 0 to 180 degrees
-  // in steps of 1 degree
-  myservo.write(pos);     // tell servo to go to position in variable 'pos'
-  delay(15);              // waits 15ms for the servo to reach the position
-}
-for (pos = 180; pos >= 0; pos -=1) {  // goes from 180 degrees to 0 degrees
+  if (directFlag == 0){
+    pos += 5;
+    Serial.print("pos = ");
+    Serial.print(pos );
+  } 
+  if (directFlag == 1) {
+    pos -= 5;
+    Serial.print("pos = ");
+    Serial.print(pos );
+  }
   myservo.write(pos);
-  delay(15);
-}
+
+
+  //DIFFERENTIAL HEIGHT servo 
+//  for (pos = 0; pos <=180; pos += 1) {  // goes from 0 to 180 degrees
+//    // in steps of 1 degree
+//    myservo.write(pos);     // tell servo to go to position in variable 'pos'
+//    delay(15);              // waits 15ms for the servo to reach the position
+//  }
+//  for (pos = 180; pos >= 0; pos -=1) {  // goes from 180 degrees to 0 degrees
+//    myservo.write(pos);
+//    delay(15);
+//  }
 
 
 
-
-
-// Differential Height Sensor Detection
+  // Differential Height Sensor Detection
   tsensr.poll();
   bsensr.poll();
   
-//  Serial.print(tsensr.voltage());
-//  Serial.print(",");
-//  Serial.println(bsensr.voltage());
-  
   compare = bsensr.avg - tsensr.avg;
-  Serial.print(compare);
-  Serial.print(" - ");
+  //Serial.print(compare);
+  //Serial.print(" - ");
   if (compare>DIFF_HEIGHT_RATIO) {
-    Serial.println("Weight Detected!");
+    Serial.print("Weight Detected! ");
     stationary();
     //int detected_pos = myservo.read();
-    myservo.write(90);
   } else {
-    Serial.println("No Weight Detected sad emoji");
+    Serial.print("No Weight Detected sad emoji ");
   }
 
   Serial.print("Bottom:");
@@ -181,33 +197,7 @@ for (pos = 180; pos >= 0; pos -=1) {  // goes from 180 degrees to 0 degrees
 
 
 
-//
-////CASE Forward sensors see something, check for right and left
-//if ((frsensr.avg > 350)  && (flsensr.avg > 350)) {
-//  if ((rsensr.avg > 50) && (lsensr.avg < 50))  {
-// turn_left();
-//}
-//  if ((rsensr.avg < 50) && (lsensr.avg > 50))  {
-// turn_right();
-//}
-//}
-//
-////CASE Forward sensors see something, nothinbg on sides, turn left
-//if ((frsensr.avg > 350)  && (flsensr.avg > 350)) {
-//  if ((rsensr.avg < 50) && (lsensr.avg < 50))  {
-// turn_left();
-//}
-//}
-//
-//////CASE One Forward sensor see something, check for right and left
-//if ((frsensr.avg > 350)  && (flsensr.avg < 350)) {
-//  if ((rsensr.avg > 50) && (lsensr.avg < 50))  {
-// turn_left();
-//}
-//  if ((rsensr.avg < 50) && (lsensr.avg > 50))  {
-// turn_right();
-//}
-//}
+
  
 //  Serial.write(13);
 //  Serial.write(10);
