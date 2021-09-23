@@ -11,19 +11,25 @@ int analogPin0 = A0; // setting the read pin to A0 RIGHT
 int analogPin1 = A1; //LEFT
 int analogPin2 = A2; // setting the read pin to A0 //FRONT RIGHT
 int analogPin3 = A3; //FRONT LEFT
-int topSensor = A5; // green LED (differenetial height)
-int botSensor = A4; // red LED
+int toprightSensor = A5; // green LED (differenetial height)
+int botrightSensor = A4; // red LED
+int topleftSensor = A7;
+int bottomleftSensor = A6;
 
 int pos = 0;        // position of servo
 bool directFlag = 0;// flag for servo
+long compare_right;
+long compare_left;
 
 Servo servoMotorLeft;      // create servo object to control a servo
 Servo servoMotorRight;      // create servo object to control a servo
-Servo myservo;            // for differential height servo
+Servo myServoRight;            // for differential height servo
+Servo myServoLeft;
 
-long compare;
-mySense tsensr(topSensor);    // (differenetial height)
-mySense bsensr(botSensor);
+mySense tr_sensr(toprightSensor);    // (differenetial height) top right
+mySense br_sensr(botrightSensor);  // bottom right
+mySense tl_sensr(topleftSensor);  //top left
+mySense bl_sensr(topleftSensor);  // bottom left
 
 mySense lsensr(analogPin0);
 mySense rsensr(analogPin1);
@@ -31,8 +37,12 @@ mySense frsensr(analogPin2);
 mySense flsensr(analogPin3);
 
 void setup() { // runs once at the begining
-  myservo.attach(5);                   // attached servo on pin () to ervo object 
-  myservo.write(90);                    // set servo to mid point
+  servoMotorLeft.attach(2);  // attaches the servo pin 3 to the servo object
+  servoMotorRight.attach(3);  // attaches the servo pin 2 to the servo object
+  myServoRight.attach(5);                   // attached servo on pin () to ervo object 
+  myServoLeft.attach(7);
+  myServoRight.write(90);                    // set servo to mid point
+  myServoLeft.write(90);                    // set servo to mid point
   pinMode(49, OUTPUT);                 //Pin 49 is used to enable IO power
   digitalWrite(49, 1);                 //Enable IO power on main CPU board
   pinMode(analogPin0, INPUT);
@@ -41,15 +51,10 @@ void setup() { // runs once at the begining
   pinMode(analogPin3, INPUT);
 
   Serial.begin(9600); // setting the baud rate
-  delay(100); //miliseconds
-
-  servoMotorLeft.attach(2);  // attaches the servo pin 3 to the servo object
-  servoMotorRight.attach(3);  // attaches the servo pin 2 to the servo object
 
   // differential height
   pinMode(49, OUTPUT);                 //Pin 49 is used to enable IO power
   digitalWrite(49, 1);                 //Enable IO power on main CPU board
-  Serial.begin(9600); // setting the baud rate
   delay(100);
 }
 
@@ -136,7 +141,6 @@ void loop() {
   }
 
 
-
  // DIFFERENTIAL HEIGH SERVO ROTATION
   if (pos < 1) {
     directFlag = 0;
@@ -156,7 +160,8 @@ void loop() {
     Serial.print("pos = ");
     Serial.print(pos );
   }
-  myservo.write(pos);
+  myServoRight.write(pos);
+  myServoLeft.write(pos);
 
 
   //DIFFERENTIAL HEIGHT servo 
@@ -173,25 +178,34 @@ void loop() {
 
 
   // Differential Height Sensor Detection
-  tsensr.poll();
-  bsensr.poll();
+  tr_sensr.poll();
+  br_sensr.poll();
+  tl_sensr.poll();
+  bl_sensr.poll();
   
-  compare = bsensr.avg - tsensr.avg;
+  compare_right = br_sensr.avg - tr_sensr.avg;
+  compare_left = bl_sensr.avg - tl_sensr.avg;
   //Serial.print(compare);
   //Serial.print(" - ");
-  if (compare>DIFF_HEIGHT_RATIO) {
+  if ((compare_right > DIFF_HEIGHT_RATIO) || (compare_left > DIFF_HEIGHT_RATIO)) {
     Serial.print("Weight Detected! ");
     stationary();
-    //int detected_pos = myservo.read();
+    //int detected_pos = myServoRight.read();
   } else {
     Serial.print("No Weight Detected sad emoji ");
   }
 
-  Serial.print("Bottom:");
-  Serial.print(bsensr.avg);
+  Serial.print("Bottom Right:");
+  Serial.print(br_sensr.avg);
   Serial.print(", ");
-  Serial.print("Top:");
-  Serial.print(tsensr.avg);
+  Serial.print("Top Right:");
+  Serial.print(tr_sensr.avg);
+  Serial.print(", ");
+  Serial.print("Bottom Left:");
+  Serial.print(bl_sensr.avg);
+  Serial.print(", ");
+  Serial.print("Top Left:");
+  Serial.print(tl_sensr.avg);
   Serial.print(", ");
 
 
