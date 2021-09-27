@@ -20,11 +20,13 @@ int pos = 0;        // position of servo
 bool directFlag = 0;// flag for servo
 long compare_right;
 long compare_left;
+int angle = 0;
 
 Servo servoMotorLeft;      // create servo object to control a servo
 Servo servoMotorRight;      // create servo object to control a servo
 Servo myServoRight;            // for differential height servo
 Servo myServoLeft;
+Servo pickupServo;
 
 mySense tr_sensr(toprightSensor);    // (differenetial height) top right
 mySense br_sensr(botrightSensor);  // bottom right
@@ -43,12 +45,19 @@ void setup() { // runs once at the begining
   myServoLeft.attach(7);
   myServoRight.write(90);                    // set servo to mid point
   myServoLeft.write(90);                    // set servo to mid point
+  pickupServo.attach(9);
+  pickupServo.write(0);
   pinMode(49, OUTPUT);                 //Pin 49 is used to enable IO power
   digitalWrite(49, 1);                 //Enable IO power on main CPU board
   pinMode(analogPin0, INPUT);
   pinMode(analogPin1, INPUT);
   pinMode(analogPin2, INPUT);
   pinMode(analogPin3, INPUT);
+  pinMode(toprightSensor, INPUT);
+  pinMode(botrightSensor, INPUT);
+  pinMode(topleftSensor, INPUT);
+  pinMode(bottomleftSensor, INPUT);
+
 
   Serial.begin(9600); // setting the baud rate
 
@@ -60,8 +69,8 @@ void setup() { // runs once at the begining
 
 void go_forward() {
   Serial.print("GO FORWARD ");
-  servoMotorLeft.writeMicroseconds(2100);
-  servoMotorRight.writeMicroseconds(2100);
+  servoMotorLeft.writeMicroseconds(2200);
+  servoMotorRight.writeMicroseconds(2200);
 }
 
 void go_back() {
@@ -90,55 +99,84 @@ void stationary(){
 
 
 void loop() {
-  rsensr.poll();
-  lsensr.poll();
-  frsensr.poll();
-  flsensr.poll();
+//  rsensr.poll();
+//  lsensr.poll();
+//  frsensr.poll();
+//  flsensr.poll();
 
-  Serial.print("Left:");
-  Serial.print(lsensr.avg);
+  tr_sensr.poll();
+  br_sensr.poll();
+//  tl_sensr.poll();
+//  bl_sensr.poll();
+
+//  Serial.print("Left:");
+//  Serial.print(lsensr.avg);
+//  Serial.print(", ");
+//  Serial.print("Right:");
+//  Serial.print(rsensr.avg);
+//  Serial.print(", ");
+//  Serial.print("Front left::");
+//  Serial.print(flsensr.avg);
+//  Serial.print(", ");
+//  Serial.print("Front right::");
+//  Serial.println(frsensr.avg);
+
+  Serial.print("Right Bottom:");
+  Serial.print(br_sensr.avg);
   Serial.print(", ");
-  Serial.print("Right:");
-  Serial.print(rsensr.avg);
+  Serial.print("Right Top:");
+  Serial.print(tr_sensr.avg);
   Serial.print(", ");
-  Serial.print("Front left::");
-  Serial.print(flsensr.avg);
+  Serial.print("Left Bottom:");
+  Serial.print(tr_sensr.avg);
   Serial.print(", ");
-  Serial.print("Front right::");
-  Serial.println(frsensr.avg);
+  Serial.print("Left Top:");
+  Serial.println(tl_sensr.avg);
+
+
 
   delayMicroseconds(100); 
 
 
-  ////CASE 1 MOVE FORWARD BOTH SENSORS SEE NOTHING
-  if ((frsensr.avg < 350)  && (flsensr.avg < 350)) {
-    go_forward();
-  }
+//  ////CASE 1 MOVE FORWARD BOTH SENSORS SEE NOTHING
+//  if ((frsensr.avg < 350)  && (flsensr.avg < 350)) {
+//    go_forward();
+//  }
+//
+//  // CASE If either front sensor detect somthing
+//  else if ((frsensr.avg > 350)  || (flsensr.avg > 350)) {
+//  
+//    // Check if right sensor detects something, turn left if so
+//    if ((rsensr.avg > 50) && (lsensr.avg < 50))  {
+//      turn_left();
+//    }
+//  
+//    // Check if left sensor detects something, turn right if so
+//    if ((rsensr.avg < 50) && (lsensr.avg > 50))  {
+//      turn_right();
+//    }
+//  
+//    // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
+//    if ((rsensr.avg < 50) && (lsensr.avg < 50))  {
+//      turn_left();
+//    }
+//
+//    // If both left and right sensor detects something
+//    if ((rsensr.avg > 50) && (lsensr.avg > 50))  {
+//      go_back(); 
+//    }
+//  
+//  }
+//
+//
 
-  // CASE If either front sensor detect somthing
-  else if ((frsensr.avg > 350)  || (flsensr.avg > 350)) {
-  
-    // Check if right sensor detects something, turn left if so
-    if ((rsensr.avg > 50) && (lsensr.avg < 50))  {
-      turn_left();
-    }
-  
-    // Check if left sensor detects something, turn right if so
-    if ((rsensr.avg < 50) && (lsensr.avg > 50))  {
-      turn_right();
-    }
-  
-    // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
-    if ((rsensr.avg < 50) && (lsensr.avg < 50))  {
-      turn_left();
-    }
 
-    // If both left and right sensor detects something
-    if ((rsensr.avg > 50) && (lsensr.avg > 50))  {
-      go_back(); 
-    }
-  
-  }
+Serial.print(angle);
+angle += 5;
+if (angle >= 360) {
+  angle == 0;
+}
+pickupServo.write(angle);
 
 
  // DIFFERENTIAL HEIGH SERVO ROTATION
@@ -146,22 +184,21 @@ void loop() {
     directFlag = 0;
     Serial.println("directFlag = 0");
   }
-  if (pos > 179) {
+  if (pos > 130) {
     directFlag = 1;
   }
 
   if (directFlag == 0){
     pos += 5;
-    Serial.print("pos = ");
-    Serial.print(pos );
+    //Serial.print("pos = ");
+    //Serial.print(pos );
   } 
   if (directFlag == 1) {
     pos -= 5;
-    Serial.print("pos = ");
-    Serial.print(pos );
+    //Serial.print("pos = ");
+    //Serial.print(pos );
   }
-  myServoRight.write(pos);
-  myServoLeft.write(pos);
+
 
 
   //DIFFERENTIAL HEIGHT servo 
@@ -178,10 +215,7 @@ void loop() {
 
 
   // Differential Height Sensor Detection
-  tr_sensr.poll();
-  br_sensr.poll();
-  tl_sensr.poll();
-  bl_sensr.poll();
+
   
   compare_right = br_sensr.avg - tr_sensr.avg;
   compare_left = bl_sensr.avg - tl_sensr.avg;
@@ -189,24 +223,14 @@ void loop() {
   //Serial.print(" - ");
   if ((compare_right > DIFF_HEIGHT_RATIO) || (compare_left > DIFF_HEIGHT_RATIO)) {
     Serial.print("Weight Detected! ");
-    stationary();
+    myServoRight.write(90);
+    myServoLeft.write(90);
     //int detected_pos = myServoRight.read();
   } else {
+    myServoRight.write(pos);
+    myServoLeft.write(pos);
     Serial.print("No Weight Detected sad emoji ");
   }
-
-  Serial.print("Bottom Right:");
-  Serial.print(br_sensr.avg);
-  Serial.print(", ");
-  Serial.print("Top Right:");
-  Serial.print(tr_sensr.avg);
-  Serial.print(", ");
-  Serial.print("Bottom Left:");
-  Serial.print(bl_sensr.avg);
-  Serial.print(", ");
-  Serial.print("Top Left:");
-  Serial.print(tl_sensr.avg);
-  Serial.print(", ");
 
 
 
