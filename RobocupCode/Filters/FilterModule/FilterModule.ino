@@ -1,6 +1,5 @@
-#define CIRCBUFFSIZE 35
+#define CIRCBUFFSIZE 30
 
-int leftsensePin = A1; // setting the read pin
 int rightsensePin = A0;
 
 long samples = 10;
@@ -17,7 +16,7 @@ class mySense
 {
   private:
     byte pin;
-    int val;
+    
     int buffCount = 0;
     int buff[CIRCBUFFSIZE];
     
@@ -29,7 +28,7 @@ class mySense
     
     long runSum = 0;
     long avg;
-    
+    int val;
     
     void poll() {
       val = analogRead(pin);
@@ -46,7 +45,6 @@ class mySense
     
 };
 
-mySense lsensr(leftsensePin);
 mySense rsensr(rightsensePin);
 
 void setup() {
@@ -60,11 +58,12 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  lsensr.poll();
   rsensr.poll();
 
   Serial.print(rsensr.avg);
-
+  Serial.print(',');
+  Serial.print(rsensr.val);
+  
   Serial.write(13);
   Serial.write(10);
   delay(10);
