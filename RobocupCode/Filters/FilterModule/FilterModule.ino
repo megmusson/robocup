@@ -1,6 +1,6 @@
 #define CIRCBUFFSIZE 30
 
-int rightsensePin = A0;
+int rightsensePin = A4;
 
 long samples = 10;
 long val; // assigning val as int
