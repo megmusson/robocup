@@ -2,7 +2,7 @@
 #include "IRfilter.h"
 
 #define AVERAGE false
-#define DIFF_HEIGHT_RATIO 80
+#define DIFF_HEIGHT_RATIO 60
 #define SENSOR_RATIO_CAL 20
 #include <Servo.h>
 #include<stdio.h>
@@ -38,10 +38,12 @@ mySense rsensr(analogPin1);
 mySense frsensr(analogPin2);
 mySense flsensr(analogPin3);
 
+int myServoRightPin = 5;
+
 void setup() { // runs once at the begining
   servoMotorLeft.attach(2);  // attaches the servo pin 3 to the servo object
   servoMotorRight.attach(3);  // attaches the servo pin 2 to the servo object
-  myServoRight.attach(5);                   // attached servo on pin () to ervo object 
+  myServoRight.attach(myServoRightPin);                   // attached servo on pin () to ervo object 
   myServoLeft.attach(7);
   myServoRight.write(90);                    // set servo to mid point
   myServoLeft.write(90);                    // set servo to mid point
@@ -95,6 +97,29 @@ void stationary(){
   Serial.print("STOP ");
   servoMotorRight.writeMicroseconds(1500);      
   servoMotorLeft.writeMicroseconds(1500);
+}
+
+
+// Servomotor calibration values
+int minDegrees;
+int maxDegrees;
+int minFeedback;
+int maxFeedback;
+int tolerance = 2; //max feedback measurement error
+
+
+void calibrate(Servo servo, int analogPin, int minPos, int maxPos){
+  // Move to min position and record feedback value
+  servo.write(minPos);
+  minDegrees = minPos;
+  delay(2000);
+  minFeedback = analogRead(analogPin);
+
+  //Move to max position and record feedback value
+  servo.write(maxPos);
+  maxDegrees = maxPos;
+  delay(2000);
+  maxFeedback = analogRead(analogPin);
 }
 
 
