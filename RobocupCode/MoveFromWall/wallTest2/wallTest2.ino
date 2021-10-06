@@ -2,12 +2,21 @@
 #include "IRfilter.h"
 //#include <SharpIR.h>
 //SharpIR front( SharpIR::GP2Y0A21YK0F, A2 );
+#include "MedianFilterLib.h"
+
+
 
 #define AVERAGE false
 #define DIFF_HEIGHT_RATIO 60
 #define SENSOR_RATIO_CAL 20
 #include <Servo.h>
 #include<stdio.h>
+
+#define echoPin 27 // attach pin D2 Arduino to pin Echo of HC-SR04
+#define trigPin 26 //attach pin D3 Arduino to pin Trig of HC-SR04
+
+long USduration; // variable for the duration of sound wave travel
+int USdistance; // variable for the distance measurement
 
 int analogPin0 = A0; // setting the read pin to A0 RIGHT
 int analogPin1 = A1; //LEFT
@@ -61,6 +70,8 @@ void setup() { // runs once at the begining
   pinMode(botrightSensor, INPUT);
   pinMode(topleftSensor, INPUT);
   pinMode(bottomleftSensor, INPUT);
+    pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
+  pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
 
 
   Serial.begin(9600); // setting the baud rate
@@ -70,6 +81,9 @@ void setup() { // runs once at the begining
   digitalWrite(49, 1);                 //Enable IO power on main CPU board
   delay(100);
 }
+
+MedianFilter<int> medianFilter(15);
+
 
 void go_forward() {
   Serial.print("GO FORWARD ");
@@ -136,54 +150,45 @@ void loop() {
  tl_sensr.poll();
  bl_sensr.poll();
 
-  Serial.print("Front right:");
-
-// int frontdistance = front.getDistance(); //Calculate the distance in centimeters and store the value in a variable
-//  Serial.print(frontdistance ); //Print the value to the serial monitor
-//  Serial.print(", ");
-
-//  Serial.print("Left:");
-//  Serial.print(lsensr.avg);
-//  Serial.print(", ");
-//  Serial.print("Right:");
-//  Serial.print(rsensr.avg);
-//  Serial.print(", ");
-  //  Serial.print("Front left::");
-  //  Serial.print(flsensr.avg);
-//  Serial.print(", ");
-//  Serial.print("Front right::");
-//  Serial.println(frsensr.avg);
-//  //
-    Serial.print("Right Bottom:");
-    Serial.print(br_sensr.avg);
-    Serial.print(", ");
-    Serial.print("Right Top:");
-    Serial.print(tr_sensr.avg);
-    Serial.print(", ");
-    Serial.print("Left Bottom:");
-    Serial.print(tr_sensr.avg);
-    Serial.print(", ");
-    Serial.print("Left Top:");
-    Serial.println(tl_sensr.avg);
+       // Clears the trigPin condition
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  USduration = pulseIn(echoPin, HIGH);
+  // Calculating the distance
+  USdistance = USduration * 0.034 / 2; 
+  USdistance = medianFilter.AddValue(USdistance);
 
   delayMicroseconds(100);
 
   
 //    ////CASE 1 MOVE FORWARD BOTH SENSORS SEE NOTHING
-    if ((frsensr.avg < 350)  && (flsensr.avg < 350)) {
-      go_forward();
+    if ((frsensr.avg < 200)  && (flsensr.avg < 200)) {
+        if ((rsensr.avg > 75)) {
+      turn_left();
+    }
+    else if ((lsensr.avg > 75)) {
+      turn_right();
+    }
+      else{
+        go_forward();
+    }
     }
   
     // CASE If either front sensor detect somthing
-    else if ((frsensr.avg > 350)  || (flsensr.avg > 350)) {
+    else if ((frsensr.avg > 200)  || (flsensr.avg > 200)) {
   
       // Check if right sensor detects something, turn left if so
-      if ((rsensr.avg > 50) && (lsensr.avg < 50))  {
+      if ((rsensr.avg > 150) && (lsensr.avg < 50))  {
         turn_left();
       }
   
       // Check if left sensor detects something, turn right if so
-      if ((rsensr.avg < 50) && (lsensr.avg > 50))  {
+      if ((rsensr.avg < 50) && (lsensr.avg > 150))  {
         turn_right();
       }
   
@@ -193,72 +198,102 @@ void loop() {
       }
   
       // If both left and right sensor detects something
-      if ((rsensr.avg > 50) && (lsensr.avg > 50))  {
-        go_back();
+      if ((rsensr.avg > 75) && (lsensr.avg > 75))  {
+        if(USdistance > 30){
+        go_back();}
       }
   
     }
 
-////  Serial.print(angle);
-//  angle += 5;
-//  if (angle >= 360) {
-//    angle == 0;
-//  }
-//  pickupServo.write(angle);
+
+//  Serial.print(angle);
+  angle += 5;
+  if (angle >= 360) {
+    angle == 0;
+  }
+  pickupServo.write(angle);
+
+  // DIFFERENTIAL HEIGH SERVO ROTATION
+  if (pos < 1) {
+    directFlag = 0;
+    Serial.println("directFlag = 0");
+  }
+  if (pos > 130) {
+    directFlag = 1;
+  }
+
+  if (directFlag == 0) {
+    pos += 5;
+//    Serial.print("pos = ");
+//    Serial.print(pos );
+  }
+  if (directFlag == 1) {
+    pos -= 5;
+//    Serial.print("pos = ");
+//    Serial.print(pos );
+  }
+
+
 //
-//  // DIFFERENTIAL HEIGH SERVO ROTATION
-//  if (pos < 1) {
-//    directFlag = 0;
-//    Serial.println("directFlag = 0");
-//  }
-//  if (pos > 130) {
-//    directFlag = 1;
-//  }
-//
-//  if (directFlag == 0) {
-//    pos += 5;
-////    Serial.print("pos = ");
-////    Serial.print(pos );
-//  }
-//  if (directFlag == 1) {
-//    pos -= 5;
-////    Serial.print("pos = ");
-////    Serial.print(pos );
-//  }
-
-
-
-//  DIFFERENTIAL HEIGHT servo
-    for (pos = 0; pos <=180; pos += 1) {  // goes from 0 to 180 degrees
-      // in steps of 1 degree
-      myServoLeft.write(pos);     // tell servo to go to position in variable 'pos'
-      delay(15);              // waits 15ms for the servo to reach the position
-    }
-    for (pos = 180; pos >= 0; pos -=1) {  // goes from 180 degrees to 0 degrees
-      myServoLeft.write(pos);
-      delay(15);
-    }
+////  DIFFERENTIAL HEIGHT servo
+//    for (pos = 0; pos <=180; pos += 1) {  // goes from 0 to 180 degrees
+//      // in steps of 1 degree
+//      myServoLeft.write(pos);     // tell servo to go to position in variable 'pos'
+//      delay(15);              // waits 15ms for the servo to reach the position
+//    }
+//    for (pos = 180; pos >= 0; pos -=1) {  // goes from 180 degrees to 0 degrees
+//      myServoLeft.write(pos);
+//      delay(15);
+//    }
 
 
 
   // Differential Height Sensor Detection
 
 
-    compare_right = br_sensr.avg - tr_sensr.avg;
-    compare_left = bl_sensr.avg - tl_sensr.avg;
-    //Serial.print(compare);
-    //Serial.print(" - ");
-    if ((compare_right > DIFF_HEIGHT_RATIO) || (compare_left > DIFF_HEIGHT_RATIO)) {
-      Serial.print("Weight Detected! ");
-      myServoRight.write(90);
-      myServoLeft.write(90);
-      int detected_pos = myServoRight.read();
-    } else {
-      myServoRight.write(pos);
-      myServoLeft.write(pos);
-      Serial.print(" No Weight Detected sad emoji ");
-    }
-//  myServoRight.write()
+//    compare_right = br_sensr.avg - tr_sensr.avg;
+//    compare_left = bl_sensr.avg - tl_sensr.avg;
+//    //Serial.print(compare);
+//    //Serial.print(" - ");
+//    if ((compare_right > DIFF_HEIGHT_RATIO) || (compare_left > DIFF_HEIGHT_RATIO)) {
+//      Serial.print("Weight Detected! ");
+//      myServoRight.write(90);
+//      myServoLeft.write(90);
+//      int detected_pos = myServoRight.read();
+//    } else {
+//      myServoRight.write(pos);
+//      myServoLeft.write(pos);
+//      Serial.print(" No Weight Detected sad emoji ");
+//    }
 
+
+// int frontdistance = front.getDistance(); //Calculate the distance in centimeters and store the value in a variable
+//  Serial.print(frontdistance ); //Print the value to the serial monitor
+//  Serial.print(", ");
+
+  Serial.print("Left:");
+  Serial.print(lsensr.avg);
+  Serial.print(", ");
+  Serial.print("Right:");
+  Serial.print(rsensr.avg);
+  Serial.print(", ");
+  Serial.print("Front right::");
+  Serial.print(frsensr.avg);
+   Serial.print(", ");
+Serial.print("US Distance: ");
+  Serial.print(USdistance);
+  Serial.println(" cm");
+  //
+//    Serial.print("Right Bottom:");
+//    Serial.print(br_sensr.avg);
+//    Serial.print(", ");
+//    Serial.print("Right Top:");
+//    Serial.print(tr_sensr.avg);
+//    Serial.print(", ");
+//    Serial.print("Left Bottom:");
+//    Serial.print(tr_sensr.avg);
+//    Serial.print(", ");
+//    Serial.print("Left Top:");
+//    Serial.println(tl_sensr.avg);
 
 }
