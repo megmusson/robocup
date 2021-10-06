@@ -2,7 +2,7 @@
 #include "IRfilter.h"
 
 #define AVERAGE false
-#define DIFF_HEIGHT_RATIO 60
+#define DIFF_HEIGHT_RATIO 80
 #define SENSOR_RATIO_CAL 20
 #include <Servo.h>
 #include<stdio.h>
@@ -43,8 +43,8 @@ int myServoRightPin = 5;
 void setup() { // runs once at the begining
   servoMotorLeft.attach(2);  // attaches the servo pin 3 to the servo object
   servoMotorRight.attach(3);  // attaches the servo pin 2 to the servo object
-  myServoRight.attach(myServoRightPin);                   // attached servo on pin () to ervo object 
-  myServoLeft.attach(7);
+  myServoRight.attach(7);                   // attached servo on pin () to ervo object 
+  myServoLeft.attach(myServoRightPin);
   myServoRight.write(90);                    // set servo to mid point
   myServoLeft.write(90);                    // set servo to mid point
   pickupServo.attach(9);
@@ -106,21 +106,22 @@ int maxDegrees;
 int minFeedback;
 int maxFeedback;
 int tolerance = 2; //max feedback measurement error
+int weight_pos;
 
 
-void calibrate(Servo servo, int analogPin, int minPos, int maxPos){
-  // Move to min position and record feedback value
-  servo.write(minPos);
-  minDegrees = minPos;
-  delay(2000);
-  minFeedback = analogRead(analogPin);
-
-  //Move to max position and record feedback value
-  servo.write(maxPos);
-  maxDegrees = maxPos;
-  delay(2000);
-  maxFeedback = analogRead(analogPin);
-}
+//void calibrate(Servo servo, int analogPin, int minPos, int maxPos){
+//  // Move to min position and record feedback value
+//  servo.write(minPos);
+//  minDegrees = minPos;
+//  delay(2000);
+//  minFeedback = analogRead(analogPin);
+//
+//  //Move to max position and record feedback value
+//  servo.write(maxPos);
+//  maxDegrees = maxPos;
+//  delay(2000);
+//  maxFeedback = analogRead(analogPin);
+//}
 
 
 void loop() {
@@ -195,13 +196,13 @@ void loop() {
 //
 //
 
-
-Serial.print(angle);
+// Pick up mechanism servo, continuous rotation
+//Serial.print(angle);
 angle += 5;
 if (angle >= 360) {
   angle == 0;
 }
-pickupServo.write(angle);
+pickupServo.write(angle); 
 
 
  // DIFFERENTIAL HEIGH SERVO ROTATION
@@ -241,20 +242,24 @@ pickupServo.write(angle);
 
   // Differential Height Sensor Detection
 
-  
+//  myServoRight.write(pos);
+//  myServoLeft.write(pos);
   compare_right = br_sensr.avg - tr_sensr.avg;
   compare_left = bl_sensr.avg - tl_sensr.avg;
   //Serial.print(compare);
   //Serial.print(" - ");
   if ((compare_right > DIFF_HEIGHT_RATIO) || (compare_left > DIFF_HEIGHT_RATIO)) {
     Serial.print("Weight Detected! ");
-    myServoRight.write(90);
-    myServoLeft.write(90);
+    weight_pos = myServoRight.read();   // read weight position from servo
+    Serial.print("Position: ");
+    Serial.print(weight_pos);
+    stationary();   // stop the robot
+    
     //int detected_pos = myServoRight.read();
   } else {
-    myServoRight.write(pos);
-    myServoLeft.write(pos);
     Serial.print("No Weight Detected sad emoji ");
+      myServoRight.write(pos);
+  myServoLeft.write(pos);
   }
 
 
