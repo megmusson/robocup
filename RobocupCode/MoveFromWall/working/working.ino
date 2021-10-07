@@ -11,10 +11,10 @@ int analogPin0 = A0; // setting the read pin to A0 RIGHT
 int analogPin1 = A1; //LEFT
 int analogPin2 = A2; // setting the read pin to A0 //FRONT RIGHT
 int analogPin3 = A3; //FRONT LEFT
-int toprightSensor = A5; // green LED (differenetial height)
-int botrightSensor = A4; // red LED
-int topleftSensor = A7;
-int bottomleftSensor = A6;
+int toprightSensor = A7; // green LED (differenetial height)
+int botrightSensor = A6; // red LED
+int topleftSensor = A5;
+int bottomleftSensor = A4;
 
 int pos = 0;        // position of servo
 bool directFlag = 0;// flag for servo
@@ -22,6 +22,8 @@ long compare_right;
 long compare_left;
 int angle = 0;
 bool spinRightFlag = 0;
+bool spinLeftFlag = 0;
+
 
 Servo servoMotorLeft;      // create servo object to control a servo
 Servo servoMotorRight;      // create servo object to control a servo
@@ -40,12 +42,13 @@ mySense frsensr(analogPin2);
 mySense flsensr(analogPin3);
 
 int myServoRightPin = 5;
+int myServoLeftPin = 4;
 
 void setup() { // runs once at the begining
   servoMotorLeft.attach(2);  // attaches the servo pin 3 to the servo object
   servoMotorRight.attach(3);  // attaches the servo pin 2 to the servo object
-  myServoRight.attach(7);                   // attached servo on pin () to ervo object 
-  myServoLeft.attach(myServoRightPin);
+  myServoRight.attach(myServoRightPin);                   // attached servo on pin () to ervo object 
+  myServoLeft.attach(myServoLeftPin);
   myServoRight.write(90);                    // set servo to mid point
   myServoLeft.write(90);                    // set servo to mid point
   pickupServo.attach(9);
@@ -106,6 +109,13 @@ void spin_right(){
   servoMotorLeft.writeMicroseconds(2000);
 }
 
+void spin_left(){
+  Serial.print("SPIN LEFT ");
+  servoMotorLeft.writeMicroseconds(1000);      //Forward Slow  
+  servoMotorRight.writeMicroseconds(2000);
+}
+
+
 
 // Servomotor calibration values
 int minDegrees;
@@ -162,17 +172,17 @@ void loop() {
 //  Serial.print("Front right::");
 //  Serial.println(frsensr.avg);
 
-//  Serial.print("Right Bottom:");
-//  Serial.print(br_sensr.avg);
-//  Serial.print(", ");
-//  Serial.print("Right Top:");
-//  Serial.print(tr_sensr.avg);
-//  Serial.print(", ");
-//  Serial.print("Left Bottom:");
-//  Serial.print(tr_sensr.avg);
-//  Serial.print(", ");
-//  Serial.print("Left Top:");
-//  Serial.println(tl_sensr.avg);
+  Serial.print("Right Bottom:");
+  Serial.print(br_sensr.avg);
+  Serial.print(", ");
+  Serial.print("Right Top:");
+  Serial.print(tr_sensr.avg);
+  Serial.print(", ");
+  Serial.print("Left Bottom:");
+  Serial.print(bl_sensr.avg);
+  Serial.print(", ");
+  Serial.print("Left Top:");
+  Serial.println(tl_sensr.avg);
 
 
 
@@ -180,12 +190,12 @@ void loop() {
 
 
   ////CASE 1 MOVE FORWARD BOTH SENSORS SEE NOTHING
-  if ((frsensr.avg < 350)  && (flsensr.avg < 350) && (spinRightFlag == 0)) {
+  if ((frsensr.avg < 350)  && (flsensr.avg < 350) && (spinRightFlag == 0) && (spinLeftFlag == 0)) {
     go_forward();
   }
 
   // CASE If either front sensor detect somthing
-  else if ((frsensr.avg > 350)  || (flsensr.avg > 350) && (spinRightFlag == 0)) {
+  else if ((frsensr.avg > 350)  || (flsensr.avg > 350) && (spinRightFlag == 0)&& (spinLeftFlag == 0)) {
   
     // Check if right sensor detects something, turn left if so
     if ((rsensr.avg > 50) && (lsensr.avg < 50))  {
@@ -193,17 +203,17 @@ void loop() {
     }
   
     // Check if left sensor detects something, turn right if so
-    if ((rsensr.avg < 50) && (lsensr.avg > 50) && (spinRightFlag == 0))  {
+    if ((rsensr.avg < 50) && (lsensr.avg > 50) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
       turn_right();
     }
   
     // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
-    if ((rsensr.avg < 50) && (lsensr.avg < 50) && (spinRightFlag == 0))  {
+    if ((rsensr.avg < 50) && (lsensr.avg < 50) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
       turn_left();
     }
 
     // If both left and right sensor detects something
-    if ((rsensr.avg > 50) && (lsensr.avg > 50) && (spinRightFlag == 0))  {
+    if ((rsensr.avg > 50) && (lsensr.avg > 50) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
       go_back(); 
     }
   
@@ -262,7 +272,7 @@ pickupServo.write(angle);
   compare_left = bl_sensr.avg - tl_sensr.avg;
   //Serial.print(compare);
   //Serial.print(" - ");
-  if ((compare_right > DIFF_HEIGHT_RATIO) || (compare_left > DIFF_HEIGHT_RATIO)) {
+  if (compare_right > DIFF_HEIGHT_RATIO) {
     Serial.print("Weight Detected! ");
     spinRightFlag = 1;
     weight_pos = myServoRight.read();   // read weight position from servo
@@ -296,16 +306,54 @@ pickupServo.write(angle);
       
     }
     //int detected_pos = myServoRight.read();
-  } else {
+  } 
+   else if ((compare_left > DIFF_HEIGHT_RATIO)) {
+    Serial.print("Weight Detected! ");
+      spinLeftFlag = 1;
+    weight_pos = myServoLeft.read();   // read weight position from servo
+    Serial.print("Position: ");
+    Serial.print(weight_pos);
+    stationary();   // stop the robot
+    if (weight_pos < 30) {
+      spin_left();
+      delay(50);
+      spinLeftFlag = 0;
+      
+    }
+   else if (weight_pos < 60 && weight_pos > 30) {
+      spin_left();
+      delay(100);
+      spinLeftFlag = 0;
+      
+    }
+
+       else if (weight_pos < 90 && weight_pos > 60) {
+      spin_left();
+      delay(150);
+      spinLeftFlag = 0;
+      
+    }
+
+       else if (weight_pos < 130 && weight_pos > 90) {
+      spin_left();
+      delay(200);
+      spinLeftFlag = 0;
+      
+    }
+    //int detected_pos = myServoRight.read();
+  } 
+  else {
     Serial.print("No Weight Detected sad emoji ");
     myServoRight.write(pos);
-    myServoLeft.write(pos);
+    myServoLeft.write(180-pos);
   }
-
-Serial.print("Flag " );
-Serial.print(spinRightFlag );
-Serial.print("position " );
-Serial.println(pos );
+//
+//Serial.print("Flag " );
+//Serial.print(spinRightFlag );
+//Serial.print("position " );
+//Serial.println(pos );
+//Serial.print("Left Flag " );
+//Serial.print(spinLeftFlag );
 
 
 
