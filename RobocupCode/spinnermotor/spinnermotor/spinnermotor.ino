@@ -25,8 +25,8 @@ servoMotorLeft.attach(2);  // attaches the servo pin 3 to the servo object
 }
 void go_forward() {
   Serial.print("GO FORWARD ");
-  servoMotorLeft.writeMicroseconds(2200);
-  servoMotorRight.writeMicroseconds(2200);
+  servoMotorLeft.writeMicroseconds(2000);
+  servoMotorRight.writeMicroseconds(2000);
 }
 
 
@@ -35,7 +35,7 @@ void loop() {
   digitalWrite(S1_INA, LOW);
   digitalWrite(S1_INB, HIGH);
   analogWrite(S1_PWM, 255);
-//  go_forward();
+  go_forward();
   delay(50);
 
 }
