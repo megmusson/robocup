@@ -169,7 +169,7 @@ int fro = front.getDistance();
 //  Serial.print(br_sensr.avg);
 //  Serial.print(", ");
 //  Serial.print("Right Top:");
-//  Serial.print(tr_sensr.avg);
+//  Serial.print(tr_sensr.avg); a
 //  Serial.print(", ");
 //  Serial.print("Left Bottom:");
 //  Serial.print(bl_sensr.avg);
@@ -252,102 +252,102 @@ int fro = front.getDistance();
 
 
 
-//  // Differential Height Sensor Detection AND NAVIGATION
+  // Differential Height Sensor Detection AND NAVIGATION
+
+//    myServoRight.write(pos);
+//    myServoLeft.write(180-pos);
+  compare_right = br_sensr.avg - tr_sensr.avg;
+  compare_left = bl_sensr.avg - tl_sensr.avg;
+  //Serial.print(compare);
+  //Serial.print(" - ");
+  if (compare_right > DIFF_HEIGHT_RATIO) {
+//    Serial.print("Weight Detected! ");
+    spinRightFlag = 1;
+    weight_pos = myServoRight.read();   // read weight position from servo
+//    Serial.print("Position: ");
+//    Serial.print(weight_pos);
+    stationary();   // stop the robot
+
+    
+    if (weight_pos < 30) {
+      spin_right();
+      delay(50);
+      spinRightFlag = 0;
+    }
+    else if (weight_pos < 60) { // && weight_pos > 30
+      spin_right();
+      delay(100);
+      spinRightFlag = 0;
+      
+    }
+
+    else if (weight_pos < 90) { // && weight_pos > 60
+      spin_right();
+      delay(150);
+      spinRightFlag = 0;
+      
+    }
+
+       else if (weight_pos < 130) { // && weight_pos > 90
+      spin_right();
+      delay(200);
+      spinRightFlag = 0;
+      
+    }
+    //int detected_pos = myServoRight.read();
+  } 
+   else if ((compare_left > DIFF_HEIGHT_RATIO)) {
+//    Serial.print("Weight Detected! ");
+      spinLeftFlag = 1;
+    weight_pos = myServoLeft.read();   // read weight position from servo
+//    Serial.print("Position: ");
+//    Serial.print(weight_pos);
+    stationary();   // stop the robot
+    if (weight_pos < 30) {
+      spin_left();
+      delay(50);
+      spinLeftFlag = 0;
+      
+    }
+   else if (weight_pos < 60 && weight_pos > 30) {
+      spin_left();
+      delay(100);
+      spinLeftFlag = 0;
+      
+    }
+
+       else if (weight_pos < 90 && weight_pos > 60) {
+      spin_left();
+      delay(150);
+      spinLeftFlag = 0;
+      
+    }
+
+       else if (weight_pos < 130 && weight_pos > 90) {
+      spin_left();
+      delay(200);
+      spinLeftFlag = 0;
+      
+    }
+    //int detected_pos = myServoRight.read();
+  } 
+  else {
+//    Serial.print("No Weight Detected");
+//    myServoRight.write(pos);
+//    myServoLeft.write(180-pos);
+  }
 //
-////    myServoRight.write(pos);
-////    myServoLeft.write(180-pos);
-//  compare_right = br_sensr.avg - tr_sensr.avg;
-//  compare_left = bl_sensr.avg - tl_sensr.avg;
-//  //Serial.print(compare);
-//  //Serial.print(" - ");
-//  if (compare_right > DIFF_HEIGHT_RATIO) {
-////    Serial.print("Weight Detected! ");
-//    spinRightFlag = 1;
-//    weight_pos = myServoRight.read();   // read weight position from servo
-////    Serial.print("Position: ");
-////    Serial.print(weight_pos);
-//    stationary();   // stop the robot
-//
-//    
-//    if (weight_pos < 30) {
-//      spin_right();
-//      delay(50);
-//      spinRightFlag = 0;
-//    }
-//    else if (weight_pos < 60) { // && weight_pos > 30
-//      spin_right();
-//      delay(100);
-//      spinRightFlag = 0;
-//      
-//    }
-//
-//    else if (weight_pos < 90) { // && weight_pos > 60
-//      spin_right();
-//      delay(150);
-//      spinRightFlag = 0;
-//      
-//    }
-//
-//       else if (weight_pos < 130) { // && weight_pos > 90
-//      spin_right();
-//      delay(200);
-//      spinRightFlag = 0;
-//      
-//    }
-//    //int detected_pos = myServoRight.read();
-//  } 
-//   else if ((compare_left > DIFF_HEIGHT_RATIO)) {
-////    Serial.print("Weight Detected! ");
-//      spinLeftFlag = 1;
-//    weight_pos = myServoLeft.read();   // read weight position from servo
-////    Serial.print("Position: ");
-////    Serial.print(weight_pos);
-//    stationary();   // stop the robot
-//    if (weight_pos < 30) {
-//      spin_left();
-//      delay(50);
-//      spinLeftFlag = 0;
-//      
-//    }
-//   else if (weight_pos < 60 && weight_pos > 30) {
-//      spin_left();
-//      delay(100);
-//      spinLeftFlag = 0;
-//      
-//    }
-//
-//       else if (weight_pos < 90 && weight_pos > 60) {
-//      spin_left();
-//      delay(150);
-//      spinLeftFlag = 0;
-//      
-//    }
-//
-//       else if (weight_pos < 130 && weight_pos > 90) {
-//      spin_left();
-//      delay(200);
-//      spinLeftFlag = 0;
-//      
-//    }
-//    //int detected_pos = myServoRight.read();
-//  } 
-//  else {
-////    Serial.print("No Weight Detected");
-////    myServoRight.write(pos);
-////    myServoLeft.write(180-pos);
-//  }
-////
-////Serial.print("Flag " ); 
-////Serial.print(spinRightFlag );
-////Serial.print("position " );
-////Serial.println(pos );
-////Serial.print("Left Flag " );
-////Serial.print(spinLeftFlag );
-//
-//
-//
-// 
-////  Serial.write(13);
-////  Serial.write(10);
+//Serial.print("Flag " ); 
+//Serial.print(spinRightFlag );
+//Serial.print("position " );
+//Serial.println(pos );
+//Serial.print("Left Flag " );
+//Serial.print(spinLeftFlag );
+
+
+
+ 
+//  Serial.write(13);
+//  Serial.write(10);
 
 }
