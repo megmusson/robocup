@@ -5,6 +5,9 @@
 #ifndef MOTORS_H_
 #define MOTORS_H_
 
+#include "Arduino.h"
+#include <Servo.h>
+
 // SET THIS TO REAL VALUES
 #define LEFT_MOTOR_ADDRESS 2      //Pin corresponding to the left dc motor
 #define RIGHT_MOTOR_ADDRESS 3    //Pin corresponding to the right dc motor
@@ -12,21 +15,16 @@
 #define MAX_SPEED_CAP 2200          //Set the maximum speed value that can be written to the motors
 
 
-#define FAST_FORWARD_SPEED 2100
-#define SLOW_FORWARD_SPEED 1900
-#define STOP_SPEED 1500
-#define BACK_SPEED 1100
+void initServo();
+void checkSpeedLimits(/*parameters*/);
+void setMotor(/*parameters*/);
 
+void go_forward(int speedPercent);
+void go_back(int speedPercent);
 
-void go_forward();
-void go_back();
-void turn_left();
-void turn_right();
+void turn_left(int speedPercent);
+void turn_right(int speedPercent);
+
 void stationary();
-
-
-//void check_speed_limits(/*parameters*/);
-//void set_motor(/*parameters*/);
-
 
 #endif /* MOTORS_H_ */

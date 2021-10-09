@@ -2,67 +2,58 @@
 #include "Arduino.h"
 #include <Servo.h>
 
-/* Check whether the speed value to be written is within the maximum
- *  and minimum speed caps. Act accordingly.
- *
- */
-//void check_speed_limits(/*parameters*/) {
-//  Serial.println("Check the motor speed limit \n");
-//}
+#define STOP_SPEED 1500
+#define VARIABLE_SPEED 500
+#define TURN_FACTOR 4/5
 
+#define leftMotorPin 2
+#define rightMotorPin 3
 
-
-
-/* In this section, the motor speeds should be updated/written.
- *It is also a good idea to check whether value to write is valid.
- *It is also a good idea to do so atomically!
- */
-//void set_motor(/*parameters*/) {
-//
-//  Serial.println("Change the motor speed \n");
-//  
-//  check_speed_limits();
-//
-//}
+Servo servoMotorLeft;      // create servo object to control a servo
+Servo servoMotorRight;      // create servo object to control a servo
 
 void initServo() {
-  servoMotorLeft.attach(LEFT_MOTOR_ADDRESS);
-  servoMotorRight.attach(RIGHT_MOTOR_ADDRESS);
+  servoMotorLeft.attach(leftMotorPin);
+  servoMotorRight.attach(rightMotorPin);
 }
 
-void goStraight(int speedPercent) {
+void go_forward(int speedPercent) {
   int leftSpeed = 0;
   int rightSpeed = 0;
 
   leftSpeed = STOP_SPEED + VARIABLE_SPEED*speedPercent/100;
   rightSpeed = STOP_SPEED + VARIABLE_SPEED*speedPercent/100;
 
-  leftMotor.writeMicroseconds(leftSpeed);
-  rightMotor.writeMicroseconds(rightSpeed);
+  servoMotorLeft.writeMicroseconds(leftSpeed);
+  servoMotorRight.writeMicroseconds(rightSpeed);
 }
 
 void go_back() {
   Serial.println("GO BACKWARDS ");
-  servoMotorLeft.writeMicroseconds(BACK_SPEED);
-  servoMotorRight.writeMicroseconds(BACK_SPEED);
-}
 
-void go_forward() {
-  Serial.println("GO FORWARD ");
-  servoMotorLeft.writeMicroseconds(FAST_FORWARD_SPEED);
-  servoMotorRight.writeMicroseconds(FAST_FORWARD_SPEED);
+  int leftSpeed = 0;
+  int rightSpeed = 0;
+
+  leftSpeed = STOP_SPEED - VARIABLE_SPEED*speedPercent/100;
+  rightSpeed = STOP_SPEED - VARIABLE_SPEED*speedPercent/100;
+
+  servoMotorLeft.writeMicroseconds(leftSpeed);
+  servoMotorRight.writeMicroseconds(rightSpeed);
+
 }
 
 void turn_left(){
   Serial.println("TURN LEFT ");
-  servoMotorLeft.writeMicroseconds(BACK_SPEED);      //Forward Slow  
-  servoMotorRight.writeMicroseconds(SLOW_FORWARD_SPEED);
+    servoMotorLeft.writeMicroseconds(STOP_SPEED - VARIABLE_SPEED*speedPercent/100*TURN_FACTOR);
+    servoMotorRight.writeMicroseconds(STOP_SPEED + VARIABLE_SPEED*speedPercent/100*TURN_FACTOR);
+
 }
 
 void turn_right(){
   Serial.println("TURN RIGHT ");
-  servoMotorLeft.writeMicroseconds(SLOW_FORWARD_SPEED);
-  servoMotorRight.writeMicroseconds(BACK_SPEED);      //Forward Slow  
+    servoMotorLeft.writeMicroseconds(STOP_SPEED + VARIABLE_SPEED*speedPercent/100*TURN_FACTOR);
+    servoMotorRight.writeMicroseconds(STOP_SPEED - VARIABLE_SPEED*speedPercent/100*TURN_FACTOR);
+
 
 }
 
