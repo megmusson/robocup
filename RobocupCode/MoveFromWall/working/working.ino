@@ -1,5 +1,10 @@
-// random
+
 #include "IRfilter.h"
+
+#include <SharpIR.h>
+SharpIR right( SharpIR::GP2Y0A41SK0F, A1 );
+SharpIR left( SharpIR::GP2Y0A41SK0F, A0 );
+SharpIR front( SharpIR::GP2Y0A21YK0F, A2 );
 
 #define AVERAGE false
 #define DIFF_HEIGHT_RATIO 80
@@ -11,10 +16,10 @@ int analogPin0 = A0; // setting the read pin to A0 RIGHT
 int analogPin1 = A1; //LEFT
 int analogPin2 = A2; // setting the read pin to A0 //FRONT RIGHT
 int analogPin3 = A3; //FRONT LEFT
-int toprightSensor = A7; // green LED (differenetial height)
-int botrightSensor = A6; // red LED
-int topleftSensor = A5;
-int bottomleftSensor = A4;
+int toprightSensor = A6; // green LED (differenetial height)
+int botrightSensor = A7; // red LED
+int topleftSensor = A4;
+int bottomleftSensor = A5;
 
 int pos = 0;        // position of servo
 bool directFlag = 0;// flag for servo
@@ -23,6 +28,7 @@ long compare_left;
 int angle = 0;
 bool spinRightFlag = 0;
 bool spinLeftFlag = 0;
+int weight_pos;
 
 
 Servo servoMotorLeft;      // create servo object to control a servo
@@ -34,7 +40,7 @@ Servo pickupServo;
 mySense tr_sensr(toprightSensor);    // (differenetial height) top right
 mySense br_sensr(botrightSensor);  // bottom right
 mySense tl_sensr(topleftSensor);  //top left
-mySense bl_sensr(topleftSensor);  // bottom left
+mySense bl_sensr(bottomleftSensor);  // bottom left
 
 mySense lsensr(analogPin0);
 mySense rsensr(analogPin1);
@@ -75,8 +81,8 @@ void setup() { // runs once at the begining
 
 void go_forward() {
   Serial.print("GO FORWARD ");
-  servoMotorLeft.writeMicroseconds(2200);
-  servoMotorRight.writeMicroseconds(2200);
+  servoMotorLeft.writeMicroseconds(2000);
+  servoMotorRight.writeMicroseconds(2000);
 }
 
 void go_back() {
@@ -117,49 +123,36 @@ void spin_left(){
 
 
 
-// Servomotor calibration values
-int minDegrees;
-int maxDegrees;
-int minFeedback;
-int maxFeedback;
-int tolerance = 2; //max feedback measurement error
-int weight_pos;
-
-
-//void calibrate(Servo servo, int analogPin, int minPos, int maxPos){
-//  // Move to min position and record feedback value
-//  servo.write(minPos);
-//  minDegrees = minPos;
-//  delay(2000);
-//  minFeedback = analogRead(analogPin);
-//
-//  //Move to max position and record feedback value
-//  servo.write(maxPos);
-//  maxDegrees = maxPos;
-//  delay(2000);
-//  maxFeedback = analogRead(analogPin);
-//}
-
 
 void loop() {
 
-  //servoMotorRight.writeMicroseconds(1000);      
- // servoMotorLeft.writeMicroseconds(2000);
-  //delay(10000);
-    //servoMotorRight.writeMicroseconds(1000);      
-  //servoMotorLeft.writeMicroseconds(1500);
+// Obstacle sensor detection polling
+  rsensr.poll();
+  lsensr.poll();
+  frsensr.poll();
+  flsensr.poll();
 
-  
-//  rsensr.poll();
-//  lsensr.poll();
-//  frsensr.poll();
-//  flsensr.poll();
-
+// Differential height sensor polling
   tr_sensr.poll();
   br_sensr.poll();
   tl_sensr.poll();
   bl_sensr.poll();
 
+
+int dis = right.getDistance();
+  Serial.print("rig:");
+
+ Serial.print(dis);
+   Serial.print("lef:");
+
+ int lef = left.getDistance();
+ Serial.print(lef);
+  Serial.print("fro:");
+
+int fro = front.getDistance();
+ Serial.println(fro);
+
+//Printing 
 //  Serial.print("Left:");
 //  Serial.print(lsensr.avg);
 //  Serial.print(", ");
@@ -171,49 +164,55 @@ void loop() {
 //  Serial.print(", ");
 //  Serial.print("Front right::");
 //  Serial.println(frsensr.avg);
+//
+//  Serial.print("Right Bottom:");
+//  Serial.print(br_sensr.avg);
+//  Serial.print(", ");
+//  Serial.print("Right Top:");
+//  Serial.print(tr_sensr.avg);
+//  Serial.print(", ");
+//  Serial.print("Left Bottom:");
+//  Serial.print(bl_sensr.avg);
+//  Serial.print(", ");
+//  Serial.print("Left Top:");
+//  Serial.println(tl_sensr.avg);
 
-  Serial.print("Right Bottom:");
-  Serial.print(br_sensr.avg);
-  Serial.print(", ");
-  Serial.print("Right Top:");
-  Serial.print(tr_sensr.avg);
-  Serial.print(", ");
-  Serial.print("Left Bottom:");
-  Serial.print(bl_sensr.avg);
-  Serial.print(", ");
-  Serial.print("Left Top:");
-  Serial.println(tl_sensr.avg);
+//  delayMicroseconds(100); 
 
-
-
-  delayMicroseconds(100); 
-
-
-  ////CASE 1 MOVE FORWARD BOTH SENSORS SEE NOTHING
-  if ((frsensr.avg < 350)  && (flsensr.avg < 350) && (spinRightFlag == 0) && (spinLeftFlag == 0)) {
+  ////CASE 1 MOVE FORWARD BOTH SENSORS SEE NOTHING, AND NO WEIGHT DETECTED
+  if ((frsensr.avg < 200)  && (flsensr.avg < 200) && (spinRightFlag == 0) && (spinLeftFlag == 0)) {
     go_forward();
-  }
-
-  // CASE If either front sensor detect somthing
-  else if ((frsensr.avg > 350)  || (flsensr.avg > 350) && (spinRightFlag == 0)&& (spinLeftFlag == 0)) {
-  
-    // Check if right sensor detects something, turn left if so
-    if ((rsensr.avg > 50) && (lsensr.avg < 50))  {
+    if ((rsensr.avg > 200) && (lsensr.avg < 200))  {
       turn_left();
     }
   
     // Check if left sensor detects something, turn right if so
-    if ((rsensr.avg < 50) && (lsensr.avg > 50) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
+    if ((rsensr.avg < 200) && (lsensr.avg > 200) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
+      turn_right();
+    }
+  
+  }
+
+  // CASE If either front sensor detect somthing
+  else if ((frsensr.avg > 200)  || (flsensr.avg > 200) && (spinRightFlag == 0)&& (spinLeftFlag == 0)) {
+  
+    // Check if right sensor detects something, turn left if so
+    if ((rsensr.avg > 300) && (lsensr.avg < 300))  {
+      turn_left();
+    }
+  
+    // Check if left sensor detects something, turn right if so
+    if ((rsensr.avg < 300) && (lsensr.avg > 300) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
       turn_right();
     }
   
     // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
-    if ((rsensr.avg < 50) && (lsensr.avg < 50) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
+    if ((rsensr.avg < 300) && (lsensr.avg < 300) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
       turn_left();
     }
 
     // If both left and right sensor detects something
-    if ((rsensr.avg > 50) && (lsensr.avg > 50) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
+    if ((rsensr.avg > 200) && (lsensr.avg > 200) && (spinRightFlag == 0)&& (spinLeftFlag == 0))  {
       go_back(); 
     }
   
@@ -223,11 +222,11 @@ void loop() {
 
 // Pick up mechanism servo, continuous rotation
 //Serial.print(angle);
-angle += 5;
-if (angle >= 360) {
-  angle == 0;
-}
-pickupServo.write(angle); 
+//angle += 5;
+//if (angle >= 360) {
+//  angle == 0;
+//}
+//pickupServo.write(angle); 
 
 
  // DIFFERENTIAL HEIGH SERVO ROTATION
@@ -235,7 +234,7 @@ pickupServo.write(angle);
     directFlag = 0;
     Serial.println("directFlag = 0");
   }
-  if (pos > 130) {
+  if (pos > 110) {
     directFlag = 1;
   }
 
@@ -252,113 +251,103 @@ pickupServo.write(angle);
 
 
 
-  //DIFFERENTIAL HEIGHT servo 
-//  for (pos = 0; pos <=180; pos += 1) {  // goes from 0 to 180 degrees
-//    // in steps of 1 degree
-//    myservo.write(pos);     // tell servo to go to position in variable 'pos'
-//    delay(15);              // waits 15ms for the servo to reach the position
-//  }
-//  for (pos = 180; pos >= 0; pos -=1) {  // goes from 180 degrees to 0 degrees
-//    myservo.write(pos);
-//    delay(15);
-//  }
 
-
-  // Differential Height Sensor Detection
-
-//  myServoRight.write(pos);
-//  myServoLeft.write(pos);
-  compare_right = br_sensr.avg - tr_sensr.avg;
-  compare_left = bl_sensr.avg - tl_sensr.avg;
-  //Serial.print(compare);
-  //Serial.print(" - ");
-  if (compare_right > DIFF_HEIGHT_RATIO) {
-    Serial.print("Weight Detected! ");
-    spinRightFlag = 1;
-    weight_pos = myServoRight.read();   // read weight position from servo
-    Serial.print("Position: ");
-    Serial.print(weight_pos);
-    stationary();   // stop the robot
-    if (weight_pos < 30) {
-      spin_right();
-      delay(50);
-      spinRightFlag = 0;
-      
-    }
-   else if (weight_pos < 60 && weight_pos > 30) {
-      spin_right();
-      delay(100);
-      spinRightFlag = 0;
-      
-    }
-
-       else if (weight_pos < 90 && weight_pos > 60) {
-      spin_right();
-      delay(150);
-      spinRightFlag = 0;
-      
-    }
-
-       else if (weight_pos < 130 && weight_pos > 90) {
-      spin_right();
-      delay(200);
-      spinRightFlag = 0;
-      
-    }
-    //int detected_pos = myServoRight.read();
-  } 
-   else if ((compare_left > DIFF_HEIGHT_RATIO)) {
-    Serial.print("Weight Detected! ");
-      spinLeftFlag = 1;
-    weight_pos = myServoLeft.read();   // read weight position from servo
-    Serial.print("Position: ");
-    Serial.print(weight_pos);
-    stationary();   // stop the robot
-    if (weight_pos < 30) {
-      spin_left();
-      delay(50);
-      spinLeftFlag = 0;
-      
-    }
-   else if (weight_pos < 60 && weight_pos > 30) {
-      spin_left();
-      delay(100);
-      spinLeftFlag = 0;
-      
-    }
-
-       else if (weight_pos < 90 && weight_pos > 60) {
-      spin_left();
-      delay(150);
-      spinLeftFlag = 0;
-      
-    }
-
-       else if (weight_pos < 130 && weight_pos > 90) {
-      spin_left();
-      delay(200);
-      spinLeftFlag = 0;
-      
-    }
-    //int detected_pos = myServoRight.read();
-  } 
-  else {
-    Serial.print("No Weight Detected sad emoji ");
-    myServoRight.write(pos);
-    myServoLeft.write(180-pos);
-  }
+//  // Differential Height Sensor Detection AND NAVIGATION
 //
-//Serial.print("Flag " );
-//Serial.print(spinRightFlag );
-//Serial.print("position " );
-//Serial.println(pos );
-//Serial.print("Left Flag " );
-//Serial.print(spinLeftFlag );
-
-
-
- 
-//  Serial.write(13);
-//  Serial.write(10);
+////    myServoRight.write(pos);
+////    myServoLeft.write(180-pos);
+//  compare_right = br_sensr.avg - tr_sensr.avg;
+//  compare_left = bl_sensr.avg - tl_sensr.avg;
+//  //Serial.print(compare);
+//  //Serial.print(" - ");
+//  if (compare_right > DIFF_HEIGHT_RATIO) {
+////    Serial.print("Weight Detected! ");
+//    spinRightFlag = 1;
+//    weight_pos = myServoRight.read();   // read weight position from servo
+////    Serial.print("Position: ");
+////    Serial.print(weight_pos);
+//    stationary();   // stop the robot
+//
+//    
+//    if (weight_pos < 30) {
+//      spin_right();
+//      delay(50);
+//      spinRightFlag = 0;
+//    }
+//    else if (weight_pos < 60) { // && weight_pos > 30
+//      spin_right();
+//      delay(100);
+//      spinRightFlag = 0;
+//      
+//    }
+//
+//    else if (weight_pos < 90) { // && weight_pos > 60
+//      spin_right();
+//      delay(150);
+//      spinRightFlag = 0;
+//      
+//    }
+//
+//       else if (weight_pos < 130) { // && weight_pos > 90
+//      spin_right();
+//      delay(200);
+//      spinRightFlag = 0;
+//      
+//    }
+//    //int detected_pos = myServoRight.read();
+//  } 
+//   else if ((compare_left > DIFF_HEIGHT_RATIO)) {
+////    Serial.print("Weight Detected! ");
+//      spinLeftFlag = 1;
+//    weight_pos = myServoLeft.read();   // read weight position from servo
+////    Serial.print("Position: ");
+////    Serial.print(weight_pos);
+//    stationary();   // stop the robot
+//    if (weight_pos < 30) {
+//      spin_left();
+//      delay(50);
+//      spinLeftFlag = 0;
+//      
+//    }
+//   else if (weight_pos < 60 && weight_pos > 30) {
+//      spin_left();
+//      delay(100);
+//      spinLeftFlag = 0;
+//      
+//    }
+//
+//       else if (weight_pos < 90 && weight_pos > 60) {
+//      spin_left();
+//      delay(150);
+//      spinLeftFlag = 0;
+//      
+//    }
+//
+//       else if (weight_pos < 130 && weight_pos > 90) {
+//      spin_left();
+//      delay(200);
+//      spinLeftFlag = 0;
+//      
+//    }
+//    //int detected_pos = myServoRight.read();
+//  } 
+//  else {
+////    Serial.print("No Weight Detected");
+////    myServoRight.write(pos);
+////    myServoLeft.write(180-pos);
+//  }
+////
+////Serial.print("Flag " ); 
+////Serial.print(spinRightFlag );
+////Serial.print("position " );
+////Serial.println(pos );
+////Serial.print("Left Flag " );
+////Serial.print(spinLeftFlag );
+//
+//
+//
+// 
+////  Serial.write(13);
+////  Serial.write(10);
 
 }
