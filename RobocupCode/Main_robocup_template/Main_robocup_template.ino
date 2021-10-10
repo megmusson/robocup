@@ -7,7 +7,6 @@
 #include "MedianFilterLib.h"
 
 //#include <Herkulex.h>             //smart servo
-<<<<<<< HEAD
 //#include <Adafruit_TCS34725.h>      //colour sensor
 //#include <Wire.h>                   //for I2C and SPI
 
@@ -24,19 +23,6 @@ SharpIR left( SharpIR::GP2Y0A41SK0F, A0 );
 SharpIR front( SharpIR::GP2Y0A21YK0F, A2 );
 MedianFilter<int> medianFilter(30);
 
-=======
-#include <Adafruit_TCS34725.h>      //colour sensor
-#include <Wire.h>                   //for I2C and SPI
-#include <TaskScheduler.h>          //scheduler 
-#include "IRfilter.h"
-#include "circBufT.h"
-
-// Custom headers
-#include "motors.h"
-#include "sensors.h"
-#include "weight_collection.h"
-#include "return_to_base.h" 
-
 //**********************************************************************************
 // Local Definitions
 //**********************************************************************************
@@ -44,64 +30,27 @@ MedianFilter<int> medianFilter(30);
 #define DIFF_HEIGHT_RATIO 80
 #define SENSOR_RATIO_CAL 20
 
-int analogPin0 = A0; // setting the read pin to A0 RIGHT
-int analogPin1 = A1; //LEFT
-int analogPin2 = A2; // setting the read pin to A0 //FRONT RIGHT
-int analogPin3 = A3; //FRONT LEFT
 int toprightSensor = A7; // green LED (differenetial height)
 int botrightSensor = A6; // red LED
 int topleftSensor = A4;
 int bottomleftSensor = A5;
 
-int pos = 0;        // position of servo
-bool directFlag = 0;// flag for servo
 long compare_right;
 long compare_left;
-int angle = 0;
 bool spinRightFlag = 0;
 bool spinLeftFlag = 0;
-
-Servo servoMotorLeft;      // create servo object to control a servo
-Servo servoMotorRight;      // create servo object to control a servo
-Servo myServoRight;            // for differential height servo
-Servo myServoLeft;
-Servo pickupServo;
 
 mySense tr_sensr(toprightSensor);    // (differenetial height) top right
 mySense br_sensr(botrightSensor);  // bottom right
 mySense tl_sensr(topleftSensor);  //top left
 mySense bl_sensr(topleftSensor);  // bottom left
 
-mySense lsensr(analogPin0);
-mySense rsensr(analogPin1);
-mySense frsensr(analogPin2);
-mySense flsensr(analogPin3);
-
-int myServoRightPin = 5;
-int myServoLeftPin = 4;
-// Serial deffinitions
-#define BAUD_RATE 9600
->>>>>>> dc9e197927dad04c1332741e9da8a7c813760de8
-
-int toprightSensor = A7; // green LED (differenetial height)
-int botrightSensor = A6; // red LED
-int topleftSensor = A5;
-int bottomleftSensor = A4;
-
-mySense tr_sensr(toprightSensor);    // (differenetial height) top right
-mySense br_sensr(botrightSensor);  // bottom right
-mySense tl_sensr(topleftSensor);  //top left
-mySense bl_sensr(bottomleftSensor);  // bottom left
-
-<<<<<<< HEAD
 //**********************************************************************************
 // Local Definitions
 //**********************************************************************************
 
 // Pin deffinitions
 #define IO_POWER  49
-#define DIFF_HEIGHT_RATIO 80
-#define SENSOR_RATIO_CAL 20
 #define BAUD_RATE 9600
 #define echoPin 27 // attach pin D2 Arduino to pin Echo of HC-SR04
 #define trigPin 26 //attach pin D3 Arduino to pin Trig of HC-SR04
@@ -114,19 +63,11 @@ bool backflag = 0;
 int moveSpeed = 100;
 int turn = 0;
 
-long compare_right;
-long compare_left;
-bool spinRightFlag = 0;
-bool spinLeftFlag = 0;
-=======
->>>>>>> dc9e197927dad04c1332741e9da8a7c813760de8
-
 //**********************************************************************************
 // Function Definitions
 //**********************************************************************************
 void pin_init();
 //void robot_init();
-//void task_init(;
 
 //**********************************************************************************
 // SETUP
@@ -135,9 +76,7 @@ void setup() {
   Serial.begin(BAUD_RATE);
   pin_init();
   //  robot_init();
-  //  task_init();
   //  Wire.begin();
-
   initServo();
 
 }
@@ -159,12 +98,9 @@ void pin_init() {
   pinMode(bottomleftSensor, INPUT);
   Serial.println("Pins have been initialised \n");
 
-
   pinMode(IO_POWER, OUTPUT);              //Pin 49 is used to enable IO power
   digitalWrite(IO_POWER, 1);              //Enable IO power on main CPU board
 }
-
-<<<<<<< HEAD
 //**********************************************************************************
 // Set default robot state
 //**********************************************************************************
@@ -172,29 +108,18 @@ void pin_init() {
 //    Serial.println("Robot is ready \n");
 //}
 
-
-=======
->>>>>>> dc9e197927dad04c1332741e9da8a7c813760de8
-
 //**********************************************************************************
 // put your main code here, to run repeatedly
 //**********************************************************************************
 void loop() {
 
-<<<<<<< HEAD
-  // Differential height sensor polling
-=======
-  rsensr.poll();
-  lsensr.poll();
-  frsensr.poll();
-  flsensr.poll();
 
->>>>>>> dc9e197927dad04c1332741e9da8a7c813760de8
+  // Differential height sensor polling
+
   tr_sensr.poll();
   br_sensr.poll();
   tl_sensr.poll();
   bl_sensr.poll();
-<<<<<<< HEAD
   
   int rightDistance = right.getDistance();
   int leftDistance = left.getDistance();
@@ -237,7 +162,7 @@ void loop() {
 //  Serial.println(tl_sensr.avg);
 
 
-  if (frontDistance > 15 && backflag == 0) {
+  if (frontDistance > 20 && backflag == 0) {
     go_forward(moveSpeed);
 
     // Check if left sensor detects something, turn right if so
@@ -251,7 +176,7 @@ void loop() {
   }
 
   // CASE If either front sensor detect somthing
-  else if (frontDistance < 15 ) {
+  else if (frontDistance < 20 ) {
 
     // Check if left sensor detects something, turn right if so
     if (leftDistance < 10 && rightDistance > 10 && backflag == 0)  {
@@ -303,8 +228,5 @@ void loop() {
     stationary();   // stop the robot
     spin_left(moveSpeed);
   }
-=======
-  
-  
->>>>>>> dc9e197927dad04c1332741e9da8a7c813760de8
+
 }
