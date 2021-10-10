@@ -13,47 +13,26 @@
 //// Local definitions
 //#define BUF_SIZE 4
 //
+//global 
 //
-//// Read ultrasonic value
-////void read_ultrasonic(/* Parameters */){
-////  Serial.println("Ultrasonic value \n");
-////}
+//void run_sensors(){
+//  int rightDistance = right.getDistance();
+//  int leftDistance = left.getDistance();
+//  int frontDistancer = frontr.getDistance();
+//  int frontDistancel = frontl.getDistance();
 //
-//// Read infrared value
-////void read_infrared(/* Parameters */){
-////  Serial.println("Infrared value \n");  
-////}
+//  int blDistance = bl.getDistance();
+//  int tlDistance = tl.getDistance();
+//  int brDistance = br.getDistance();
+//  int trDistance = tr.getDistance();
 //
-//// Read colour sensor value
-////void read_colour(/* Parameters */){
-////  Serial.println("colour value \n");  
-////}
+//  rightDistance = median1Filter.AddValue(rightDistance);
+//  leftDistance = median2Filter.AddValue(leftDistance);
+//  frontDistancer = median3Filter.AddValue(frontDistancer);
+//  frontDistancel = median4Filter.AddValue(frontDistancel);
 //
-//// Pass in data and average the lot
-////void sensor_average(/* Parameters */){
-////  Serial.println("Averaging the sensors \n");
-////}
-//
-//int readIRSensor(int IRPin, circBuf_t chosenBuf) {
-//  int IRreading = analogRead(IRPin);
-//  writeCircBuf(&chosenBuf, IRreading);
-//
-//  /*Serial.print(IRPin);
-//  Serial.print(" ");
-//  Serial.println(IRreading);*/
-//  
-//  return meanBuffer(chosenBuf);
-//}
-//
-//
-//int meanBuffer(circBuf_t chosenBuf) {
-//  int i = 0;
-//    long sum = 0;
-//
-//    // sums buffer values
-//    for (i = 0; i < BUF_SIZE; i++) {
-//        sum = sum + readCircBuf (&chosenBuf);
-//    }
-//
-//    return (2 * sum + BUF_SIZE) / 2 / BUF_SIZE;
+//  blDistance = medianblFilter.AddValue(blDistance);
+//  tlDistance = mediantlFilter.AddValue(tlDistance);
+//  brDistance = medianbrFilter.AddValue(brDistance);
+//  trDistance = mediantrFilter.AddValue(trDistance);
 //}

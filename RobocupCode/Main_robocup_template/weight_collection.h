@@ -23,11 +23,15 @@
 
 
 
-void weight_scan(/* whatever parameters */);
+//void weight_scan(/* whatever parameters */);
 
+void motor_setup();
 
 void collect_weight();
+void weightservo_setup();
+void servo_rotate();
 
-
+int readservoleft();
+void servomove(int posi);
 
 #endif /* WEIGHT_COLLECTION_H_ */
