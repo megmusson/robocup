@@ -40,6 +40,14 @@ int timecounter = 0;
 #define STOP_STATE 2
 int state = 0;
 
+#define FORW 0
+#define LEFT 1
+#define RIGHT 2
+#define BACK 3
+
+int directboi = 0;
+int timeboi;
+
 // Navigation Sensors Pins
 int rightSensePin = A1;
 int leftSensePin = A0;
@@ -69,6 +77,7 @@ long compare_left;
 bool spinRightFlag = 0;
 bool spinLeftFlag = 0;
 
+// colour sensor
 uint16_t r, g, b, c, colorTemp, lux;
 bool base = 1; //1 for red base, 0 for green
 
@@ -84,11 +93,16 @@ float k2Medium = 11.4466760237414;
 float k1Long = 0.362045928;
 float k2Long = 40.5482045360838;
 
+// obstacle avoid code
+bool frontBlocked = false;
+bool sidesBlocked = false;
+int frontStop = 10;
+int sideStop = 5;
 //**********************************************************************************
 // Local Definitions
 //**********************************************************************************
 
-mySense rightS(rightSensePin,k1Short, k2Short);
+mySense rightS(rightSensePin, k1Short, k2Short);
 mySense leftS(leftSensePin, k1Short, k2Short);
 mySense frontLS(frontlSensePin, k1Long, k2Long);
 mySense frontRS(frontrSensePin, k1Long, k2Long);
@@ -104,7 +118,7 @@ int backDistance; // variable for the distance measurement
 
 bool backflag = 0;
 int moveSpeed = 100;
-int turn = 0;
+int turnSpeed = 0;
 
 //**********************************************************************************
 // Function Definitions
@@ -170,176 +184,96 @@ void pin_init() {
 //}
 
 void convertAllSense() {
-   rightDistance = rightS.Distance();
- leftDistance =  leftS.Distance();
- frontDistancer = frontLS.Distance();
- frontDistancel = frontRS.Distance();
+  rightDistance = rightS.Distance();
+  leftDistance =  leftS.Distance();
+  frontDistancer = frontLS.Distance();
+  frontDistancel = frontRS.Distance();
 
- blDistance = wdTR.Distance();
- tlDistance = wdTL.Distance();
- brDistance = wdBR.Distance();
- trDistance = wdBL.Distance();
-  
+  blDistance = wdTR.Distance();
+  tlDistance = wdTL.Distance();
+  brDistance = wdBR.Distance();
+  trDistance = wdBL.Distance();
+
+}
+
+
+void driveAvoid(int direct) {
+  if (direct == FORW) {
+go_forward(moveSpeed);
+  } else if (direct == LEFT) {
+    turn_left(turnSpeed);
+  } else if (direct == RIGHT) {
+    turn_right(turnSpeed);
+  } else if (direct == BACK) {
+
+  }
+}
+
+void driveWeight(int direct) {
+  if (direct == FORW) {
+    go_forward(moveSpeed);
+  } else if (direct == LEFT) {
+    turn_left(turnSpeed);
+  } else if (direct == RIGHT) {
+    turn_right(turnSpeed);
+  } else if (direct == BACK) {
+    go_back();
+  }
 }
 
 void loop() {
+  timeboi = 0;
   collect_weight();
   pollSense();
   convertAllSense();
 
 
-switch (state){
-  case SEARCH_STATE:{
+  switch (state) {
+    case SEARCH_STATE: {
 
 
+        if (frontDistancer  < frontStop || frontDistancel < frontStop) {
+          frontBlocked = true;
+          if (rightDistance < sideStop && leftDistance < sideStop) {
+            sidesBlocked = true;
+            directboi = BACK;
+          } else if (rightDistance < sideStop) {
+            directboi = LEFT;
+          } else if (leftDistance < sideStop) {
+            directboi = RIGHT;
+          } else {
+            directboi = FORW;
+          }
+        }
+        
+        if (frontBlocked) {
+          if (sidesBlocked) {
+            if (rightDistance > sideStop || leftDistance > sideStop) {
+              sidesBlocked = false;
+            }
+          } if (frontDistancer > frontStop || frontDistancel > frontStop) {
+            frontBlocked = false;
+          }
+        }
 
-     if (diffHeightTrig) {
-      
-      state = FOUND_STATE;
-      diffHeightTrig = false;
-    }
-    break;
+//        if (diffHeightDist != 0) {
+//          // TODO: weight detection
+//          state = FOUND_STATE;
+//          diffHeightTrig = false;
+//        }
+        driveAvoid(directboi);
+        break;
+      }
+    case FOUND_STATE: {
+        driveWeight(directboi);
+        break;
+      }
+    case STOP_STATE: {
+        stationary();
+      }
   }
-  case FOUND_STATE:{
-
-   
-    break;
-  }
-  case STOP_STATE:{
-
-    
-  }
 
 
 
-  
-}
-
-
-  //
-  //  if (frontDistancel > 20 && frontDistancer > 20 && backflag == 0) {
-  ////    rightDistance = right.getDistance();
-  ////    leftDistance = left.getDistance();
-  //
-  //    // Check if left sensor detects something, turn right if so
-  //    if (leftDistance < 15 && rightDistance > 15)  {
-  //      turn_right(moveSpeed);
-  //      //
-  //    }
-  //    else if (rightDistance < 15 && leftDistance > 15)  {
-  //      turn_left(moveSpeed);
-  //
-  //    }
-  //    else {
-  //      go_forward(moveSpeed);
-  //    }
-  //
-  //  }
-
-  //  // CASE If either front sensor detect somthing
-  //  else if (frontDistancer < 20 || frontDistancel < 20) {
-  ////    rightDistance = right.getDistance();
-  ////    leftDistance = left.getDistance();
-  //
-  //    // Check if left sensor detects something, turn right if so
-  //    if (leftDistance < 15 && rightDistance > 15 && backflag == 0)  {
-  //      turn_right(moveSpeed);
-  //
-  //    }
-  //
-  //    if (rightDistance < 15 && leftDistance > 15 && backflag == 0)  {
-  //      turn_left(moveSpeed);
-  //
-  //    }
-  //
-  //    // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
-  //    if (rightDistance > 15 && leftDistance > 15 && backflag == 0 )  {
-  //      turn_right(moveSpeed);
-  //    }
-  //
-  //    // If both left and right sensor detects something
-  //    if (rightDistance < 15 && leftDistance < 15 && backflag == 0)  {
-  //      backflag = 1;
-  //    }
-  //  }
-  //
-  //  else if (backflag == 1) {
-  //    while (rightDistance < 15 || leftDistance < 15) {
-  //      go_back();
-  //      rightDistance = right.getDistance();
-  //      leftDistance = left.getDistance();
-  //    }
-  //
-  //    backflag = 0;
-  //    turn_right(moveSpeed);
-  //    delay(3000);
-  //
-  //  }
-
-
-  //  compare_right =  trDistance - brDistance;
-  //  compare_left =  - blDistance ;
-
-
-  //  if (compare_right > DIFF_HEIGHT_RATIO) {
-
-  //    spinRightFlag = 1;
-  //    stationary();   // stop the robot
-  //    spin_right(moveSpeed);
-  //  }
-  //  if ((blDistance < 15 && tlDistance > 25)) {
-
-  //    spinLeftFlag = 1;
-  //    weight_pos = readservoleft();   // read weight position from servo
-  //    stationary();
-  //    spin_left(moveSpeed);
-  //    delay(50);
-  //    spinLeftFlag = 0;
-  //  }
-
-  // stop the robot
-  //    if (weight_pos < 30) {
-
-  //
-  //      spin_left(moveSpeed);
-  //      delay(50);
-  //      spinLeftFlag = 0;
-  //
-  //    }
-  //    else if (weight_pos < 60 && weight_pos > 30) {
-
-  //      spin_left(moveSpeed);
-  //      delay(100);
-  //      spinLeftFlag = 0;
-  //
-  //    }
-  //
-  //    else if (weight_pos < 90 && weight_pos > 60) {
-
-  //
-  //      spin_left(moveSpeed);
-  //      delay(150);
-  //      spinLeftFlag = 0;
-  //
-  //    }
-  //
-  //    else if (weight_pos < 130 && weight_pos > 90) {
-
-  //
-  //      spin_left(moveSpeed);
-  //      delay(200);
-  //      spinLeftFlag = 0;
-  //
-  //    }
-  //    //int detected_pos = myServoRight.read();
-  //  }
-  //  else {
-
-  //        myServoRight.write(pos);
-  //        myServoLeft.write(180-pos);
-  //  }
-
-  timecounter += 1;
-
-
+  delay(1);
 }
