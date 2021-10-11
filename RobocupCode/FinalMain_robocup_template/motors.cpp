@@ -3,7 +3,7 @@
 #include <Servo.h>
 
 #define STOP_SPEED 1500
-#define VARIABLE_SPEED 500
+#define VARIABLE_SPEED 600
 #define TURN_FACTOR 4/5
 
 #define leftMotorPin 2
@@ -23,7 +23,7 @@ void initServo() {
 }
 
 void go_forward(int speedPercent) {
-  Serial.print("GO STRAIGHT ");
+  //Serial.println("GO STRAIGHT ");
   int leftSpeed = 0;
   int rightSpeed = 0;
   leftSpeed = STOP_SPEED + VARIABLE_SPEED * speedPercent / 100;
@@ -33,7 +33,7 @@ void go_forward(int speedPercent) {
 }
 
 void go_back() {
-  Serial.print("GO BACKWARDS ");
+  //Serial.println("GO BACKWARDS ");
   int leftSpeed = 1100;
   int rightSpeed = 1100;
   servoMotorLeft.writeMicroseconds(leftSpeed);
@@ -43,26 +43,26 @@ void go_back() {
 
 
 void turn_left(int speedPercent) {
-  Serial.print("TURN LEFT ");
+  //Serial.println("TURN LEFT ");
     servoMotorLeft.writeMicroseconds(STOP_SPEED - VARIABLE_SPEED*speedPercent/100*TURN_FACTOR);
     servoMotorRight.writeMicroseconds(STOP_SPEED + VARIABLE_SPEED*speedPercent/100*TURN_FACTOR);
 
 }
 
 void turn_right(int speedPercent) {
-  Serial.print("TURN RIGHT ");
+  //Serial.println("TURN RIGHT ");
     servoMotorLeft.writeMicroseconds(STOP_SPEED + VARIABLE_SPEED*speedPercent/100*TURN_FACTOR);
     servoMotorRight.writeMicroseconds(STOP_SPEED - VARIABLE_SPEED*speedPercent/100*TURN_FACTOR);
 }
 
 void stationary() {
-  Serial.print("STOP ");
+  //Serial.println("STOP ");
   servoMotorRight.writeMicroseconds(STOP_SPEED);
   servoMotorLeft.writeMicroseconds(STOP_SPEED);
 }
 
 void spin_left(int speedPercent){
-    Serial.print("SPIN LEFT ");
+    //Serial.println("SPIN LEFT ");
   go_back();
   delay(50);
   servoMotorLeft.writeMicroseconds(BACK_SPEED);      
@@ -72,7 +72,7 @@ void spin_left(int speedPercent){
 
 
 void spin_right(int speedPercent){
-      Serial.print("SPIN right ");
+      //Serial.println("SPIN right ");
 
   go_back();
   delay(50);

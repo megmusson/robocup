@@ -19,28 +19,8 @@ int weight_pos;
 
 
 #include "IRfilter.h"
-#include <SharpIR.h>
-SharpIR right( SharpIR::GP2Y0A41SK0F, A1 );
-SharpIR left( SharpIR::GP2Y0A41SK0F, A0 );
-SharpIR frontl( SharpIR::GP2Y0A21YK0F, A3 );
-SharpIR frontr( SharpIR::GP2Y0A21YK0F, A2 );
-SharpIR tr( SharpIR::GP2Y0A21YK0F, A7 );
-SharpIR tl( SharpIR::GP2Y0A21YK0F, A4 );
-SharpIR br( SharpIR::GP2Y0A21YK0F, A6 );
-SharpIR bl( SharpIR::GP2Y0A21YK0F, A5 );
 
 
-MedianFilter<int> medianFilter(30);
-MedianFilter<int> median1Filter(2);
-MedianFilter<int> median2Filter(2);
-MedianFilter<int> median3Filter(2);
-MedianFilter<int> median4Filter(2);
-
-
-MedianFilter<int> mediantrFilter(10);
-MedianFilter<int> mediantlFilter(10);
-MedianFilter<int> medianbrFilter(10);
-MedianFilter<int> medianblFilter(10);
 
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X);
 int timecounter = 0;
@@ -48,6 +28,30 @@ int timecounter = 0;
 //**********************************************************************************
 // Local Definitions
 //**********************************************************************************
+
+// Navigation Sensors Pins
+int rightSensePin = A1;
+int leftSensePin = A0;
+int frontlSensePin  = A2;
+int frontrSensePin  = A3;
+
+// Weight Detection Pins
+int wdTopRPin = A7;
+int wdTopLPin = A4;
+int wdBotRPin = A6;
+int wdBotLPin = A5;
+
+// Sensor Distances
+float rightDistance;
+float leftDistance;
+float frontDistancer;
+float frontDistancel;
+
+float blDistance;
+float tlDistance;
+float brDistance;
+float trDistance;
+
 #define AVERAGE false
 #define DIFF_HEIGHT_RATIO 50
 #define SENSOR_RATIO_CAL 20
@@ -72,6 +76,25 @@ bool base = 1; //1 for red base, 0 for green
 //**********************************************************************************
 // Local Definitions
 //**********************************************************************************
+float k1Short = 0.022648669896535;
+float k2Short = 11.4466981524272;
+
+float k1Medium = 0.022648669896535;
+float k2Medium = 11.4466760237414;
+
+float k1Long = 0.362045928;
+float k2Long = 40.5482045360838;
+
+mySense rightS(rightSensePin,k1Short, k2Short);
+mySense leftS(leftSensePin, k1Short, k2Short);
+mySense frontLS(frontlSensePin, k1Long, k2Long);
+mySense frontRS(frontrSensePin, k1Long, k2Long);
+
+mySense wdTR(wdTopRPin, k1Medium, k2Medium);
+mySense wdTL(wdTopLPin, k1Medium, k2Medium);
+mySense wdBR(wdBotRPin, k1Medium, k2Medium);
+mySense wdBL(wdBotLPin, k1Medium, k2Medium);
+
 
 // Pin deffinitions
 #define IO_POWER  49
@@ -92,6 +115,31 @@ int turn = 0;
 //**********************************************************************************
 void pin_init();
 //void robot_init();
+
+void pollSense() {
+  rightS.poll();
+  leftS.poll();
+  frontLS.poll();
+  frontRS.poll();
+
+  wdTR.poll();
+  wdTL.poll();
+  wdBR.poll();
+  wdBL.poll();
+}
+
+void convertAllSense() {
+ rightDistance = rightS.Distance();
+ leftDistance =  leftS.Distance();
+ frontDistancer = frontLS.Distance();
+ frontDistancel = frontRS.Distance();
+
+ blDistance = wdTR.Distance();
+ tlDistance = wdTL.Distance();
+ brDistance = wdBR.Distance();
+ trDistance = wdBL.Distance();
+  
+}
 
 //**********************************************************************************
 // SETUP
@@ -114,18 +162,18 @@ void setup() {
 // Set as high or low
 //**********************************************************************************
 void pin_init() {
-
-  pinMode(A0, INPUT);
-  pinMode(A1, INPUT);
-  pinMode(A2, INPUT);
-  pinMode(A3, INPUT);
-
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
   pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
-  pinMode(toprightSensor, INPUT);
-  pinMode(botrightSensor, INPUT);
-  pinMode(topleftSensor, INPUT);
-  pinMode(botleftSensor, INPUT);
+  
+  pinMode(rightSensePin, INPUT);
+  pinMode(leftSensePin, INPUT);
+  pinMode(frontlSensePin, INPUT);
+  pinMode(frontrSensePin, INPUT);
+
+  pinMode(wdTopRPin, INPUT);
+  pinMode(wdTopLPin, INPUT);
+  pinMode(wdBotRPin, INPUT);
+  pinMode(wdBotLPin, INPUT);
   Serial.println("Pins have been initialised \n");
 
   pinMode(IO_POWER, OUTPUT);              //Pin 49 is used to enable IO power
@@ -147,27 +195,8 @@ void loop() {
     collect_weight();
 //  servo_rotate();
   servomove(10);
-
-
-  int rightDistance = right.getDistance();
-  int leftDistance = left.getDistance();
-  int frontDistancer = frontr.getDistance();
-  int frontDistancel = frontl.getDistance();
-
-  int blDistance = bl.getDistance();
-  int tlDistance = tl.getDistance();
-  int brDistance = br.getDistance();
-  int trDistance = tr.getDistance();
-
-  rightDistance = median1Filter.AddValue(rightDistance);
-  leftDistance = median2Filter.AddValue(leftDistance);
-  frontDistancer = median3Filter.AddValue(frontDistancer);
-  frontDistancel = median4Filter.AddValue(frontDistancel);
-
-  blDistance = medianblFilter.AddValue(blDistance);
-  tlDistance = mediantlFilter.AddValue(tlDistance);
-  brDistance = medianbrFilter.AddValue(brDistance);
-  trDistance = mediantrFilter.AddValue(trDistance);
+pollSense();
+convertAllSense();
 
 
   //  digitalWrite(trigPin, LOW);
@@ -187,31 +216,28 @@ void loop() {
   //  Serial.println(" cm");
   //  delayMicroseconds(100);
   //
-  //    Serial.print("right:");
-  //    Serial.print(rightDistance);
-  //    Serial.print("left:");
-  //      Serial.print(leftDistance);
-  //      Serial.print("front right:");
-  //      Serial.println(frontDistancer);
-  //      Serial.print("front left:");
-  //      Serial.println(frontDistancel);
-
-        Serial.print("Rimmght Bottom:");
-      Serial.print(brDistance);
-      Serial.print(", ");
-      Serial.print("Right Top:");
-      Serial.print(trDistance);
-      Serial.print(", ");
-  Serial.print("Left Bottom:");
-  Serial.print(blDistance);
-  Serial.print(", ");
-  Serial.print("Left Top:");
-  Serial.println(tlDistance);
-      Serial.println(frontDistancer);
+      Serial.print("right:");
+      Serial.print(rightDistance);
+      Serial.print(" left:");
+        Serial.print(leftDistance);
+        Serial.print(" front right:");
+        Serial.print(frontDistancer);
+        Serial.print(" front left: ");
+        Serial.println(frontDistancel);
+//        Serial.print(" Right Bottom:");
+//      Serial.print(brDistance);
+//      Serial.print(", ");
+//      Serial.print(" Right Top:");
+//      Serial.print(trDistance);
+//      Serial.print(", ");
+//  Serial.print(" Left Bottom:");
+//  Serial.print(blDistance);
+//  Serial.print(", ");
+//  Serial.print(" Left Top:");
+//  Serial.println(tlDistance);
+//      Serial.println(frontDistancer);
   
   if (frontDistancel > 20 && frontDistancer > 20 && backflag == 0) {
-    rightDistance = right.getDistance();
-    leftDistance = left.getDistance();
 
     // Check if left sensor detects something, turn right if so
     if (leftDistance < 15 && rightDistance > 15)  {
@@ -230,8 +256,6 @@ void loop() {
 
   // CASE If either front sensor detect somthing
   else if (frontDistancer < 20 || frontDistancel < 20) {
-    rightDistance = right.getDistance();
-    leftDistance = left.getDistance();
 
     // Check if left sensor detects something, turn right if so
     if (leftDistance < 15 && rightDistance > 15 && backflag == 0)  {
@@ -258,8 +282,7 @@ void loop() {
   else if (backflag == 1) {
     while (rightDistance < 15 || leftDistance < 15) {
       go_back();
-      rightDistance = right.getDistance();
-      leftDistance = left.getDistance();
+  
     }
 
     backflag = 0;

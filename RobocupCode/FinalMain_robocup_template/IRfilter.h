@@ -1,23 +1,26 @@
 #ifndef IRfilter
 #define IRfilter
 
-#define CIRCBUFFSIZE 10
+#define CIRCBUFFSIZE 5
 
 class mySense
 {
 private:
-	int pin;
-	long runSum = 0;
-	int buffCount = 0;
-	int buff[CIRCBUFFSIZE];
+  int pin;
+  long runSum = 0;
+  int buffCount = 0;
+  int buff[CIRCBUFFSIZE];
+ float k1;
+ float k2;
 public:
-	mySense(int pin);
-	long avg;
-	int val;
+  mySense(int pin, float k1, float k2);
+  long avg;
+  int val;
 
-	void poll();
+  void poll();
 
   int voltage();
+  float Distance();
 };
 
 #endif
