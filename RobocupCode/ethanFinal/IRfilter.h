@@ -1,7 +1,7 @@
 #ifndef IRfilter
 #define IRfilter
 
-#define CIRCBUFFSIZE 10
+#define CIRCBUFFSIZE 5
 
 class mySense
 {

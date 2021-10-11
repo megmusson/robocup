@@ -8,6 +8,7 @@
 #include "Arduino.h"
 #include <Servo.h>
 
+
 // SET THIS TO REAL VALUES
 #define LEFT_MOTOR_ADDRESS 2      //Pin corresponding to the left dc motor
 #define RIGHT_MOTOR_ADDRESS 3    //Pin corresponding to the right dc motor
@@ -22,6 +23,8 @@ void go_forward(int speedPercent);
 void go_back();
 void turn_left(int speedPercent);
 void turn_right(int speedPercent);
+void lean_left(int speedPercent);
+void lean_right(int speedPercent);
 void spin_left(int speedPercent);
 void spin_right(int speedPercent);
 void stationary();

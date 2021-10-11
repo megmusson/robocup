@@ -4,7 +4,7 @@
 
 /* This is for functions and tasks for
     finding and collecting weights  */
-
+bool COLLECTBOI = 0;
 
 #include "weight_collection.h"
 #include "Arduino.h"
@@ -100,11 +100,18 @@ void collect_weight()
 {
   digitalWrite(S1_INA, LOW);
   digitalWrite(S1_INB, HIGH);
+  if (COLLECTBOI) {
   analogWrite(S1_PWM, 255);
-
+  }else {
+  analogWrite(S1_PWM, 0);
+}
   digitalWrite(S2_INA, HIGH);
   digitalWrite(S2_INB, LOW);
+  if (COLLECTBOI) {
   analogWrite(S2_PWM, 255);
+  } else {
+    analogWrite(S2_PWM, 0);
+  }
 }
 
 int readservoleft(){

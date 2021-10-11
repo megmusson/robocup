@@ -2,13 +2,23 @@
                                  ROBOCUP TEMPLATE
  ******************************************************************************/
 
+
+
+// THINGS TO CHANGE
+int moveSpeed = 100;
+int turnSpeed = 120;
+float frontStop = 35;
+float sideStop = 15;
+float sideFollow = 10;
+float wdMax = 50; // max range sensors detect before not trusting diff height
+float diffHeightTol = 20;
+int pickUpTime = 20000;
 #include <Servo.h>                  //control the DC motors
 #include<stdio.h>
 
-
 //#include <Herkulex.h>             //smart servo
 #include <Adafruit_TCS34725.h>      //colour sensor
-//#include <Wire.h>                   //for I2C and SPI
+#include <Wire.h>                   //for I2C and SPI
 
 // Custom headers
 #include "motors.h"
@@ -45,14 +55,16 @@ int state = 0;
 #define RIGHT 2
 #define BACK 3
 
+#define LEANLEFT 4
+#define LEANRIGHT 5
 int directboi = 0;
 int timeboi;
 
 // Navigation Sensors Pins
 int rightSensePin = A1;
 int leftSensePin = A0;
-int frontlSensePin  = A3;
-int frontrSensePin  = A2;
+int frontlSensePin  = A2;
+int frontrSensePin  = A3;
 
 // Weight Detection Pins
 int wdTopRPin = A7;
@@ -77,6 +89,8 @@ long compare_left;
 bool spinRightFlag = 0;
 bool spinLeftFlag = 0;
 
+int weightFoundTime;
+int timeCompareWeight;
 // colour sensor
 uint16_t r, g, b, c, colorTemp, lux;
 bool base = 1; //1 for red base, 0 for green
@@ -93,11 +107,20 @@ float k2Medium = 11.4466760237414;
 float k1Long = 0.362045928;
 float k2Long = 40.5482045360838;
 
+float weightDist;
+
+
 // obstacle avoid code
 bool frontBlocked = false;
 bool sidesBlocked = false;
-int frontStop = 10;
-int sideStop = 5;
+
+// IMU stuff
+#include "DFRobot_BNO055.h"
+typedef DFRobot_BNO055_IIC    BNO;
+BNO   bno(&Wire, 0x28);
+float yaw;
+int yawChange;
+float watchdog = 0;
 //**********************************************************************************
 // Local Definitions
 //**********************************************************************************
@@ -117,8 +140,7 @@ long duration; // variable for the duration of sound wave travel
 int backDistance; // variable for the distance measurement
 
 bool backflag = 0;
-int moveSpeed = 100;
-int turnSpeed = 0;
+
 
 //**********************************************************************************
 // Function Definitions
@@ -131,6 +153,7 @@ void setup() {
   Serial.begin(BAUD_RATE);
   pin_init();
   weightservo_setup();
+  bno.reset();
 
   //  robot_init();
   //  Wire.begin();
@@ -186,8 +209,8 @@ void pin_init() {
 void convertAllSense() {
   rightDistance = rightS.Distance();
   leftDistance =  leftS.Distance();
-  frontDistancer = frontLS.Distance();
-  frontDistancel = frontRS.Distance();
+  frontDistancer = frontLS.Distance() - 10; // it was consistently 10 off shush
+  frontDistancel = frontRS.Distance() - 10;
 
   blDistance = wdTR.Distance();
   tlDistance = wdTL.Distance();
@@ -197,19 +220,8 @@ void convertAllSense() {
 }
 
 
+
 void driveAvoid(int direct) {
-  if (direct == FORW) {
-go_forward(moveSpeed);
-  } else if (direct == LEFT) {
-    turn_left(turnSpeed);
-  } else if (direct == RIGHT) {
-    turn_right(turnSpeed);
-  } else if (direct == BACK) {
-
-  }
-}
-
-void driveWeight(int direct) {
   if (direct == FORW) {
     go_forward(moveSpeed);
   } else if (direct == LEFT) {
@@ -218,11 +230,52 @@ void driveWeight(int direct) {
     turn_right(turnSpeed);
   } else if (direct == BACK) {
     go_back();
+  } else if (direct == LEANLEFT) {
+    lean_left(turnSpeed);
+  } else if (direct == LEANRIGHT) {
+    lean_right(turnSpeed);
   }
 }
 
+void driveWeight(int direct) {
+  if (direct == FORW) {
+    go_forward(moveSpeed);
+  } else if (direct == LEFT) {
+    //    Serial.println("weight left");
+    spin_left(turnSpeed);
+  } else if (direct == RIGHT) {
+    //    Serial.println("weight right");
+    spin_right(turnSpeed);
+  } else if (direct == BACK) {
+    go_back();
+  }
+}
+
+float diffHeight() {
+  float temp = 0;
+  float bruh1 = trDistance - brDistance;
+  float bruh2 = tlDistance - blDistance;
+  if (blDistance < wdMax || brDistance < wdMax) {
+    if (bruh1 > diffHeightTol) {
+      temp = blDistance;
+    } else if (bruh2 > diffHeightTol) {
+      temp = brDistance * -1;
+    }
+    return temp;
+  }
+}
+
+int previousTime;
+int nexttime;
+
 void loop() {
-  timeboi = 0;
+  servomove(15);
+  previousTime = timeboi;
+  timeboi = millis();
+  nexttime = timeboi;
+  Serial.println(nexttime-previousTime);
+
+
   collect_weight();
   pollSense();
   convertAllSense();
@@ -230,41 +283,97 @@ void loop() {
 
   switch (state) {
     case SEARCH_STATE: {
-
-
-        if (frontDistancer  < frontStop || frontDistancel < frontStop) {
-          frontBlocked = true;
+      if (frontDistancer  < frontStop && frontDistancel < frontStop) {
+        frontBlocked = true;
+          //          Serial.println("bruh");
           if (rightDistance < sideStop && leftDistance < sideStop) {
             sidesBlocked = true;
             directboi = BACK;
+            //            Serial.println("both");
           } else if (rightDistance < sideStop) {
             directboi = LEFT;
+            //            Serial.println("right");
           } else if (leftDistance < sideStop) {
             directboi = RIGHT;
+            //            Serial.println("left");
           } else {
-            directboi = FORW;
+            directboi = BACK;
           }
+          
+      } else if (frontDistancer < frontStop || frontDistancel < frontStop) {
+          frontBlocked = true;
+          //          Serial.println("bruh");
+          if (rightDistance < sideStop && leftDistance < sideStop) {
+            sidesBlocked = true;
+            directboi = BACK;
+            //            Serial.println("both");
+          } else if (rightDistance < sideStop) {
+            directboi = LEFT;
+            //            Serial.println("right");
+          } else if (leftDistance < sideStop) {
+            directboi = RIGHT;
+            //            Serial.println("left");
+          } else if (frontDistancer < frontDistancel) {
+            directboi = LEFT;
+          } else if (rightDistance < leftDistance) {
+            directboi = RIGHT;
+          } else {
+            directboi = LEFT;
+          }
+        } else if (rightDistance < sideFollow) {
+          directboi = LEANLEFT;
+        } else if (leftDistance < sideFollow) {
+          directboi = LEANRIGHT;
+        } else {
+          directboi = FORW;
         }
-        
+
         if (frontBlocked) {
           if (sidesBlocked) {
             if (rightDistance > sideStop || leftDistance > sideStop) {
               sidesBlocked = false;
             }
-          } if (frontDistancer > frontStop || frontDistancel > frontStop) {
+          } if (frontDistancer > frontStop && frontDistancel > frontStop) {
             frontBlocked = false;
           }
         }
 
-//        if (diffHeightDist != 0) {
-//          // TODO: weight detection
-//          state = FOUND_STATE;
-//          diffHeightTrig = false;
-//        }
+        //        weightDist = diffHeight();
+        //        if (weightDist != 0) {
+        //          weightFoundTime = timeboi;
+        //          state = FOUND_STATE;
+        //        }
+
+
+        if (directboi == FORW) {
+          Serial.println("FORW");
+        } else if (directboi == LEFT) {
+          Serial.println("LEFT");
+        } else if (directboi == RIGHT) {
+          Serial.println("RIGHT");
+        } else if (directboi == BACK) {
+          Serial.println("BACK");
+        } else if (directboi == LEANLEFT) {
+          Serial.println("LEANLEFT");
+        }else if (directboi == LEANRIGHT) {
+          Serial.println("LEANRIGHT");
+        }
+
         driveAvoid(directboi);
         break;
       }
     case FOUND_STATE: {
+        timeCompareWeight = timeboi - weightFoundTime;
+        if (weightDist < 0 ) {
+          directboi = LEFT;
+        } else if (weightDist > 0) {
+          directboi = RIGHT;
+        }
+
+        if (timeCompareWeight > pickUpTime) {
+          state = SEARCH_STATE;
+        }
+
         driveWeight(directboi);
         break;
       }
@@ -273,7 +382,43 @@ void loop() {
       }
   }
 
+  //      Serial.print("right: ");
+  //      Serial.print(rightDistance);
+  //      Serial.print(" left: ");
+  //        Serial.print(leftDistance);
+  //        Serial.print(" front right: ");
+  //        Serial.print(frontDistancer);
+  //        Serial.print(" front left: ");
+  //        Serial.println(frontDistancel);
 
 
-  delay(1);
+  //      Serial.print("blDistance ");
+  //      Serial.print(blDistance);
+  //      Serial.print(" tlDistance ");
+  //        Serial.print(tlDistance);
+  //        Serial.print(" brDistance ");
+  //        Serial.print(brDistance);
+  //        Serial.print(" trDistance ");
+  //        Serial.println(trDistance);
+
+  BNO::sEulAnalog_t   sEul;
+  sEul = bno.getEul();
+  yaw = sEul.head;
+  
+  yawChange = round(yaw) % 360;
+  if (yawChange > 10) {
+    watchdog += 1;
+  } else {
+    watchdog = 0;
+  }
+  if (watchdog > 100) {
+    Serial.println("STUCK"); // can swap code here to make not stuck
+  }
+
+//  if (state == SEARCH_STATE) {
+//    Serial.println("SEARCH_STATE");
+//  } else if (state == FOUND_STATE) {
+//    Serial.println("FOUND_STATE");
+//  }
+  delay(10);
 }
