@@ -98,13 +98,13 @@ void servo_rotate() {
 
 void collect_weight()
 {
-  digitalWrite(S1_INA, LOW);
-  digitalWrite(S1_INB, HIGH);
+digitalWrite(S1_INA, HIGH);
+  digitalWrite(S1_INB, LOW);
   analogWrite(S1_PWM, 255);
-
-  digitalWrite(S2_INA, HIGH);
-  digitalWrite(S2_INB, LOW);
-  analogWrite(S2_PWM, 255);
+  
+  digitalWrite(S2_INA, LOW);
+  digitalWrite(S2_INB, HIGH);
+  analogWrite(S2_PWM, 245);
 }
 
 int readservoleft(){
