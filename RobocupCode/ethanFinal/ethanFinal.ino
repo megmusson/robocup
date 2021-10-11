@@ -12,6 +12,9 @@ float sideStop = 15;
 float sideFollow = 10;
 float wdMax = 50; // max range sensors detect before not trusting diff height
 float diffHeightTol = 20;
+float turnSkew = 3;
+float leftSkew;
+float rightSkew;
 int pickUpTime = 20000;
 #include <Servo.h>                  //control the DC motors
 #include<stdio.h>
@@ -273,7 +276,7 @@ void loop() {
   previousTime = timeboi;
   timeboi = millis();
   nexttime = timeboi;
-  Serial.println(nexttime-previousTime);
+  Serial.println(nexttime - previousTime);
 
 
   collect_weight();
@@ -283,24 +286,31 @@ void loop() {
 
   switch (state) {
     case SEARCH_STATE: {
-      if (frontDistancer  < frontStop && frontDistancel < frontStop) {
-        frontBlocked = true;
-          //          Serial.println("bruh");
-          if (rightDistance < sideStop && leftDistance < sideStop) {
-            sidesBlocked = true;
-            directboi = BACK;
-            //            Serial.println("both");
-          } else if (rightDistance < sideStop) {
-            directboi = LEFT;
-            //            Serial.println("right");
-          } else if (leftDistance < sideStop) {
-            directboi = RIGHT;
-            //            Serial.println("left");
-          } else {
+        if ((frontDistancer  < frontStop) && (frontDistancel < frontStop)) {
+            leftSkew = leftDistance + turnSkew;
+            rightSkew = rightDistance + turnSkew;
+            frontBlocked = true;
+            //          Serial.println("bruh");
+            if (rightDistance < sideStop && leftDistance < sideStop) {
+              sidesBlocked = true;
+              directboi = BACK;
+              //            Serial.println("both");
+            } else if (rightDistance < sideStop) {
+              directboi = LEFT;
+              //            Serial.println("right");
+            } else if (leftDistance < sideStop) {
+              directboi = RIGHT;
+              //            Serial.println("left");
+            } else if (rightDistance > leftSkew) {
+              directboi = RIGHT; // maybe other direction
+            }else if (leftDistance > (rightDistance + turnSkew)) {
+                directboi = LEFT; // maybe other direction
+
+              }else {
             directboi = BACK;
           }
-          
-      } else if (frontDistancer < frontStop || frontDistancel < frontStop) {
+
+        } else if (frontDistancer < frontStop || frontDistancel < frontStop) {
           frontBlocked = true;
           //          Serial.println("bruh");
           if (rightDistance < sideStop && leftDistance < sideStop) {
@@ -355,7 +365,7 @@ void loop() {
           Serial.println("BACK");
         } else if (directboi == LEANLEFT) {
           Serial.println("LEANLEFT");
-        }else if (directboi == LEANRIGHT) {
+        } else if (directboi == LEANRIGHT) {
           Serial.println("LEANRIGHT");
         }
 
@@ -404,7 +414,7 @@ void loop() {
   BNO::sEulAnalog_t   sEul;
   sEul = bno.getEul();
   yaw = sEul.head;
-  
+
   yawChange = round(yaw) % 360;
   if (yawChange > 10) {
     watchdog += 1;
@@ -415,10 +425,10 @@ void loop() {
     Serial.println("STUCK"); // can swap code here to make not stuck
   }
 
-//  if (state == SEARCH_STATE) {
-//    Serial.println("SEARCH_STATE");
-//  } else if (state == FOUND_STATE) {
-//    Serial.println("FOUND_STATE");
-//  }
+  //  if (state == SEARCH_STATE) {
+  //    Serial.println("SEARCH_STATE");
+  //  } else if (state == FOUND_STATE) {
+  //    Serial.println("FOUND_STATE");
+  //  }
   delay(10);
 }
