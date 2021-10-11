@@ -24,17 +24,17 @@ SharpIR right( SharpIR::GP2Y0A41SK0F, A1 );
 SharpIR left( SharpIR::GP2Y0A41SK0F, A0 );
 SharpIR frontl( SharpIR::GP2Y0A21YK0F, A3 );
 SharpIR frontr( SharpIR::GP2Y0A21YK0F, A2 );
-SharpIR tr( SharpIR::GP2Y0A21YK0F, A6 );
+SharpIR tr( SharpIR::GP2Y0A21YK0F, A7 );
 SharpIR tl( SharpIR::GP2Y0A21YK0F, A4 );
-SharpIR br( SharpIR::GP2Y0A21YK0F, A7 );
+SharpIR br( SharpIR::GP2Y0A21YK0F, A6 );
 SharpIR bl( SharpIR::GP2Y0A21YK0F, A5 );
 
 
 MedianFilter<int> medianFilter(30);
-MedianFilter<int> median1Filter(4);
-MedianFilter<int> median2Filter(4);
-MedianFilter<int> median3Filter(4);
-MedianFilter<int> median4Filter(4);
+MedianFilter<int> median1Filter(2);
+MedianFilter<int> median2Filter(2);
+MedianFilter<int> median3Filter(2);
+MedianFilter<int> median4Filter(2);
 
 
 MedianFilter<int> mediantrFilter(10);
@@ -195,12 +195,12 @@ void loop() {
   //      Serial.print("front left:");
   //      Serial.println(frontDistancel);
 
-  //      Serial.print("Rimmght Bottom:");
-  //    Serial.print(brDistance);
-  //    Serial.print(", ");
-  //    Serial.print("Right Top:");
-  //    Serial.print(trDistance);
-  //    Serial.print(", ");
+        Serial.print("Rimmght Bottom:");
+      Serial.print(brDistance);
+      Serial.print(", ");
+      Serial.print("Right Top:");
+      Serial.print(trDistance);
+      Serial.print(", ");
   Serial.print("Left Bottom:");
   Serial.print(blDistance);
   Serial.print(", ");
@@ -209,64 +209,64 @@ void loop() {
   //    Serial.println(frontDistancer);
 
   //
-  if (frontDistancel > 20 && frontDistancer > 20 && backflag == 0) {
-//    rightDistance = right.getDistance();
-//    leftDistance = left.getDistance();
+//  if (frontDistancel > 20 && frontDistancer > 20 && backflag == 0) {
+////    rightDistance = right.getDistance();
+////    leftDistance = left.getDistance();
+//
+//    // Check if left sensor detects something, turn right if so
+//    if (leftDistance < 15 && rightDistance > 15)  {
+//      turn_right(moveSpeed);
+//      //      Serial.println(micros());
+//    }
+//    else if (rightDistance < 15 && leftDistance > 15)  {
+//      turn_left(moveSpeed);
+//
+//    }
+//    else {
+//      go_forward(moveSpeed);
+//    }
+//
+//  }
 
-    // Check if left sensor detects something, turn right if so
-    if (leftDistance < 15 && rightDistance > 15)  {
-      turn_right(moveSpeed);
-      //      Serial.println(micros());
-    }
-    else if (rightDistance < 15 && leftDistance > 15)  {
-      turn_left(moveSpeed);
-
-    }
-    else {
-      go_forward(moveSpeed);
-    }
-
-  }
-
-  // CASE If either front sensor detect somthing
-  else if (frontDistancer < 20 || frontDistancel < 20) {
-//    rightDistance = right.getDistance();
-//    leftDistance = left.getDistance();
-
-    // Check if left sensor detects something, turn right if so
-    if (leftDistance < 15 && rightDistance > 15 && backflag == 0)  {
-      turn_right(moveSpeed);
-
-    }
-
-    if (rightDistance < 15 && leftDistance > 15 && backflag == 0)  {
-      turn_left(moveSpeed);
-
-    }
-
-    // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
-    if (rightDistance > 15 && leftDistance > 15 && backflag == 0 )  {
-      turn_right(moveSpeed);
-    }
-
-    // If both left and right sensor detects something
-    if (rightDistance < 15 && leftDistance < 15 && backflag == 0)  {
-      backflag = 1;
-    }
-  }
-
-  else if (backflag == 1) {
-    while (rightDistance < 15 || leftDistance < 15) {
-      go_back();
-      rightDistance = right.getDistance();
-      leftDistance = left.getDistance();
-    }
-
-    backflag = 0;
-    turn_right(moveSpeed);
-    delay(3000);
-
-  }
+//  // CASE If either front sensor detect somthing
+//  else if (frontDistancer < 20 || frontDistancel < 20) {
+////    rightDistance = right.getDistance();
+////    leftDistance = left.getDistance();
+//
+//    // Check if left sensor detects something, turn right if so
+//    if (leftDistance < 15 && rightDistance > 15 && backflag == 0)  {
+//      turn_right(moveSpeed);
+//
+//    }
+//
+//    if (rightDistance < 15 && leftDistance > 15 && backflag == 0)  {
+//      turn_left(moveSpeed);
+//
+//    }
+//
+//    // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
+//    if (rightDistance > 15 && leftDistance > 15 && backflag == 0 )  {
+//      turn_right(moveSpeed);
+//    }
+//
+//    // If both left and right sensor detects something
+//    if (rightDistance < 15 && leftDistance < 15 && backflag == 0)  {
+//      backflag = 1;
+//    }
+//  }
+//
+//  else if (backflag == 1) {
+//    while (rightDistance < 15 || leftDistance < 15) {
+//      go_back();
+//      rightDistance = right.getDistance();
+//      leftDistance = left.getDistance();
+//    }
+//
+//    backflag = 0;
+//    turn_right(moveSpeed);
+//    delay(3000);
+//
+//  }
 
 
   //  compare_right =  trDistance - brDistance;
@@ -280,15 +280,15 @@ void loop() {
   //    stationary();   // stop the robot
   //    spin_right(moveSpeed);
   //  }
-  if ((blDistance < 15 && tlDistance > 25)) {
-    Serial.print("Weight Detected! ");
-    spinLeftFlag = 1;
-    weight_pos = readservoleft();   // read weight position from servo
-    stationary();
-    spin_left(moveSpeed);
-    delay(50);
-    spinLeftFlag = 0;
-  }
+//  if ((blDistance < 15 && tlDistance > 25)) {
+//    Serial.print("Weight Detected! ");
+//    spinLeftFlag = 1;
+//    weight_pos = readservoleft();   // read weight position from servo
+//    stationary();
+//    spin_left(moveSpeed);
+//    delay(50);
+//    spinLeftFlag = 0;
+//  }
   
   // stop the robot
   //    if (weight_pos < 30) {
