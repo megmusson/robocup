@@ -11,6 +11,8 @@
 #include "DFRobot_BNO055.h"
 #include "Wire.h"
 
+#define GREEN 0
+#define BLUE 1
 typedef DFRobot_BNO055_IIC    BNO;    // ******** use abbreviations instead of full names ********
 BNO   bno(&Wire, 0x28);    // input TwoWire interface and IIC address
 
@@ -49,6 +51,7 @@ MedianFilter<int> medianbrFilter(10);
 MedianFilter<int> medianMlFilter(10);
 
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_614MS, TCS34725_GAIN_1X);
+uint16_t r, g, b, c, colorTemp, lux;
 int timecounter = 0;
 int watchdogtimer = 0;
 //**********************************************************************************
@@ -63,10 +66,9 @@ long compare_right;
 long compare_left;
 
 float newYaw = 0;
-float oldYaw = 0
-
-               ;               uint16_t r, g, b, c, colorTemp, lux;
+float oldYaw = 0;
 bool base = 1; //1 for red base, 0 for green
+bool onBase = false;
 //**********************************************************************************
 // Local Definitions
 //**********************************************************************************
@@ -94,17 +96,17 @@ float watchdog = 0;
 // Function Definitions
 //**********************************************************************************
 void pin_init();
-
+int homeboi;
 //**********************************************************************************
 // SETUP
 //**********************************************************************************
 void setup() {
- 
-    pin_init();
-    weightservo_setup();
-    initServo();
-    motor_setup();
-    randomSeed(analogRead(7));
+
+  pin_init();
+  weightservo_setup();
+  initServo();
+  motor_setup();
+  randomSeed(analogRead(7));
 
   Serial.begin(9600);
   bno.reset();
@@ -116,6 +118,18 @@ void setup() {
   Serial.println("bno begin success");
 
 
+
+
+  tcs.getRawData(&r, &g, &b, &c);
+  delay(10);
+  tcs.getRawData(&r, &g, &b, &c);
+  if (g > 800) {
+    homeboi = GREEN;
+    Serial.println("home is green");
+  } else if (b > 700) {
+    homeboi = BLUE;
+    Serial.println("home is blue");
+  }
 }
 
 //**********************************************************************************
@@ -144,11 +158,18 @@ void pin_init() {
 
 
 
-
+unsigned long timeboi;
 void loop() {
+  timeboi = millis();
+  collect_weight();
+  Serial.println(timeboi);
 
-    collect_weight();
-//
+    Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
+  Serial.print("G: "); Serial.print(g, DEC); Serial.print(" ");
+  Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
+//  Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
+  Serial.println(" ");
+  //
   int rightDistance = right.getDistance();
   int leftDistance = left.getDistance();
   int frontDistancer = frontr.getDistance();
@@ -162,19 +183,19 @@ void loop() {
   MlDistance = medianMlFilter.AddValue(MlDistance);
   MrDistance = medianMrFilter.AddValue(MrDistance);
 
-//  Serial.print("right: ");
-//  Serial.print(rightDistance);
-//  Serial.print(" left: ");
-//  Serial.print(leftDistance);
-//  Serial.print(" front right: ");
-//  Serial.print(frontDistancer);
-//  Serial.print(" front left: ");
-//  Serial.print(frontDistancel);
-//  Serial.print("Mid Left: ");
-//  Serial.print(MlDistance);
-//  Serial.print(", ");
-//  Serial.print("Mid right: ");
-//  Serial.println(MrDistance);
+  //  Serial.print("right: ");
+  //  Serial.print(rightDistance);
+  //  Serial.print(" left: ");
+  //  Serial.print(leftDistance);
+  //  Serial.print(" front right: ");
+  //  Serial.print(frontDistancer);
+  //  Serial.print(" front left: ");
+  //  Serial.print(frontDistancel);
+  //  Serial.print("Mid Left: ");
+  //  Serial.print(MlDistance);
+  //  Serial.print(", ");
+  //  Serial.print("Mid right: ");
+  //  Serial.println(MrDistance);
 
   if (rightDistance > SIDELIMIT && leftDistance > SIDELIMIT && frontDistancer > FRONTLIMIT && frontDistancel > FRONTLIMIT && MlDistance > CORNERLIMIT && MrDistance > CORNERLIMIT) {
     go_forward(moveSpeed);
@@ -226,20 +247,20 @@ void loop() {
       while ((inloop == 1) && (frontDistancer < FRONTLIMIT) && (frontDistancel < FRONTLIMIT)) {
         frontDistancer = frontr.getDistance();
         frontDistancel = frontl.getDistance();
-//        Serial.print(" front right: ");
-//        Serial.print(frontDistancer);
-//        Serial.print(" front left: ");
-//        Serial.print(frontDistancel);
+        //        Serial.print(" front right: ");
+        //        Serial.print(frontDistancer);
+        //        Serial.print(" front left: ");
+        //        Serial.print(frontDistancel);
         turn_right(moveSpeed);
       }
       inloop = 0;
     }
     else if (randNumber % 2 == 1) {
       while ((inloop == 1) && (frontDistancer < FRONTLIMIT) && (frontDistancel < FRONTLIMIT)) {
-//        Serial.print(" front right: ");
-//        Serial.print(frontDistancer);
-//        Serial.print(" front left: ");
-//        Serial.print(frontDistancel);
+        //        Serial.print(" front right: ");
+        //        Serial.print(frontDistancer);
+        //        Serial.print(" front left: ");
+        //        Serial.print(frontDistancel);
         frontDistancer = frontr.getDistance();
         frontDistancel = frontl.getDistance();
         turn_left(moveSpeed);
@@ -265,12 +286,12 @@ void loop() {
   sEul = bno.getEul();
   newYaw = sEul.head;
 
-//  Serial.print("Old Yaw = ");
-//  Serial.print(oldYaw);
-//  Serial.print("New Yaw = ");
-//  Serial.println(newYaw);
-//  Serial.println("Watchdogln = ");
-//  Serial.println(watchdogtimer);
+  //  Serial.print("Old Yaw = ");
+  //  Serial.print(oldYaw);
+  //  Serial.print("New Yaw = ");
+  //  Serial.println(newYaw);
+  //  Serial.println("Watchdogln = ");
+  //  Serial.println(watchdogtimer);
 
   if ((newYaw - oldYaw) > 15) {
     oldYaw = newYaw;
@@ -382,5 +403,30 @@ void loop() {
   //  Serial.println(timecounter);
 
 
+  tcs.getRawData(&r, &g, &b, &c);
+  if (homeboi == BLUE && b > 700) {
+    onBase = true;
+    Serial.println("on blue");
+  } else if (homeboi == GREEN && g > 800) {
+    onBase = true;
+    Serial.println("home is green");
+  } else {
+    onBase = false;
+  }
+
+
+
+  if (timeboi > 100000 && onBase == true) {
+    while (1) {
+      Serial.println("BASE");
+      stationary();
+    }
+  }
+  if (timeboi > 130010) {
+    while (1) {
+      Serial.println("STOP");
+      go_forward(0);
+    }
+  }
 
 }
