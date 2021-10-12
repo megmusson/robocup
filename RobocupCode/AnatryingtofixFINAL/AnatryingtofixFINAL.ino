@@ -28,6 +28,14 @@ void printLastOperateStatus(BNO::eStatus_t eStatus)
   }
 }
 
+  uint16_t colourdiff;
+  uint16_t redUp;
+  uint16_t greenUp;
+  uint16_t blueUp;
+  uint16_t redLow;
+  uint16_t greenLow;
+  uint16_t blueLow;
+  
 #include "IRfilter.h"
 #include <SharpIR.h>
 SharpIR right( SharpIR::GP2Y0A41SK0F, A1 );
@@ -36,13 +44,6 @@ SharpIR frontl( SharpIR::GP2Y0A21YK0F, A3 );
 SharpIR frontr( SharpIR::GP2Y0A21YK0F, A2 );
 SharpIR Mr( SharpIR::GP2Y0A21YK0F, A4 );
 SharpIR Ml( SharpIR::GP2Y0A21YK0F, A5 );
-
-int redUp;
-int greenUp;
-int blueUp;
-int redLow;
-int greenLow;
-int blueLow;
 
 MedianFilter<int> medianFilter(30);
 MedianFilter<int> median1Filter(2);
@@ -152,18 +153,19 @@ void setup() {
   tcs.getRawData(&r, &g, &b, &c);
   delay(10);
   tcs.getRawData(&r, &g, &b, &c);
-  int colourdiff = 30;
-  int redUp = r + colourdiff;
-  int greenUp = g + colourdiff;
-  int blueUp = b + colourdiff;
-  int redLow = r - colourdiff;
-  int greenLow = g - colourdiff;
-  int blueLow = b - colourdiff;
+  uint16_t colourdiff = 0x100;
+  uint16_t redUp = r + colourdiff;
+  uint16_t greenUp = g + colourdiff;
+  uint16_t blueUp = b + colourdiff;
+  uint16_t redLow = r - colourdiff;
+  uint16_t greenLow = g - colourdiff;
+  uint16_t blueLow = b - colourdiff;
   if (g > b) {
     colstart = STGREEN;
   } else {
     colstart = STBLUE;
   }
+  
 }
 unsigned long timeboi;
 
@@ -317,22 +319,28 @@ void loop() {
   }
   watchdogtimer += 1;
 
-  if (timecounter % 80 == 0 && timeboi > 50000) {
+  if (timecounter % 80 == 0 ) {
+        tcs.getRawData(&r, &g, &b, &c);
+    } 
+    
 
-    //    tcs.getRawData(&r, &g, &b, &c);
-    if (r < redUp && g < greenUp && b < blueUp && r > redLow && g > greenLow && b > blueLow) {
-      onBase == true;
+if (colstart == STBLUE && b > blueLow) {
+      onBase = true;
+      Serial.println("GOOD");
+}else if(colstart == STGREEN && g > greenLow) {
+      onBase = true; 
+      Serial.println("GOOD");
+    } else {
+      onBase = false;
     }
-  }
-
-  if (timeboi > 100000 && onBase == true) {
+    
+Serial.println(timeboi);
+  if (timeboi > 20000 && onBase == true) {
     while (1) {
       Serial.println("BASE");
       stationary();
     }
   }
-  
-Serial.println(timeboi);
 }
 
 ///////////////////////////////////////////////////////////////////////////////END CODE////////////////////////////////////
@@ -351,9 +359,7 @@ Serial.println(timeboi);
 //
 //    Serial.print("Color Temp: "); Serial.print(colorTemp, DEC); Serial.print(" K - ");
 //    Serial.print("Lux: "); Serial.print(lux, DEC); Serial.print(" - ");
-//    Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
-//    Serial.print("G: "); Serial.print(g, DEC); Serial.print(" ");
-//    Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
+   
 //    Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
 //  Serial.println(" ");
 //  timecounter += 1;
