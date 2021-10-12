@@ -28,14 +28,14 @@ void printLastOperateStatus(BNO::eStatus_t eStatus)
   }
 }
 
-  uint16_t colourdiff;
-  uint16_t redUp;
-  uint16_t greenUp;
-  uint16_t blueUp;
-  uint16_t redLow;
-  uint16_t greenLow;
-  uint16_t blueLow;
-  
+uint16_t colourdiff;
+uint16_t redUp;
+uint16_t greenUp;
+uint16_t blueUp;
+uint16_t redLow;
+uint16_t greenLow;
+uint16_t blueLow;
+
 #include "IRfilter.h"
 #include <SharpIR.h>
 SharpIR right( SharpIR::GP2Y0A41SK0F, A1 );
@@ -150,22 +150,6 @@ void setup() {
   }
   Serial.println("bno begin success");
 
-  tcs.getRawData(&r, &g, &b, &c);
-  delay(10);
-  tcs.getRawData(&r, &g, &b, &c);
-  uint16_t colourdiff = 0x100;
-  uint16_t redUp = r + colourdiff;
-  uint16_t greenUp = g + colourdiff;
-  uint16_t blueUp = b + colourdiff;
-  uint16_t redLow = r - colourdiff;
-  uint16_t greenLow = g - colourdiff;
-  uint16_t blueLow = b - colourdiff;
-  if (g > b) {
-    colstart = STGREEN;
-  } else {
-    colstart = STBLUE;
-  }
-  
 }
 unsigned long timeboi;
 
@@ -214,14 +198,14 @@ void loop() {
     }
   }
 
-    ///////////////////////////////////////IF STATEMENT 3 - Two corner ones triggered, It is probbaly in a corner//////////////////////////////////////////////////
+  ///////////////////////////////////////IF STATEMENT 3 - Two corner ones triggered, It is probbaly in a corner//////////////////////////////////////////////////
 
   else if ((frontDistancer < FRONTLIMIT) && (frontDistancel < FRONTLIMIT)) {
     turn_left(moveSpeed);
     delay(400);
-                            
+
   }
-  
+
   ///////////////////////////////////////IF STATEMENT 3 - Two corner ones triggered, It is probbaly in a corner//////////////////////////////////////////////////
 
   else if ((MlDistance < CORNERLIMIT) && (MrDistance < CORNERLIMIT)) {
@@ -294,6 +278,7 @@ void loop() {
   roll = sEul.roll;
   Serial.print("Roll");
   Serial.print(roll);
+  Serial.println(" ");
 
   if (abs(sEul.roll) > 5) {
     Serial.println("RAMP, GO DOWN");
@@ -319,30 +304,55 @@ void loop() {
   }
   watchdogtimer += 1;
 
-  if (timecounter % 80 == 0 ) {
-        tcs.getRawData(&r, &g, &b, &c);
-    } 
-    
 
-if (colstart == STBLUE && b > blueLow) {
-      onBase = true;
-      Serial.println("GOOD");
-}else if(colstart == STGREEN && g > greenLow) {
-      onBase = true; 
-      Serial.println("GOOD");
-    } else {
-      onBase = false;
-    }
-    
-Serial.println(timeboi);
-  if (timeboi > 20000 && onBase == true) {
-    while (1) {
-      Serial.println("BASE");
-      stationary();
-    }
-  }
+
+
+
 }
-
+///////////////////////////COLOUR CODE///////////////////////////////////////
+//                             IN SETUP
+//
+//  tcs.getRawData(&r, &g, &b, &c);
+//  delay(10);
+//  tcs.getRawData(&r, &g, &b, &c);
+//  uint16_t greenLow = g - g/25;
+//  uint16_t blueLow = b - b/25;
+//  if (g > b) {
+//    colstart = STGREEN;
+//  } else {
+//    colstart = STBLUE;
+//  }
+//
+//                                IN LOOP
+//    Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
+//  Serial.print("G: "); Serial.print(g, DEC); Serial.print(" ");
+//  Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
+//
+//
+//
+//
+//
+//  if (timecounter % 80 == 0 ) {
+//        tcs.getRawData(&r, &g, &b, &c);
+//    }
+//if (colstart == STBLUE && b > blueLow) {
+//      onBase = true;
+//      Serial.println("GOOD");
+//}else if(colstart == STGREEN && g > greenLow) {
+//      onBase = true;
+//      Serial.println("GOOD");
+//    } else {
+//      onBase = false;
+//    }
+//
+//Serial.println(timeboi);
+//  if (timeboi > 10000000 && onBase == true) {
+//    while (1) {
+//      Serial.println("BASE");
+//      stationary();
+//    }
+//  }
+//
 ///////////////////////////////////////////////////////////////////////////////END CODE////////////////////////////////////
 //    if (timecounter %15 == 0) {
 //    tcs.getRawData(&r, &g, &b, &c);
@@ -359,7 +369,7 @@ Serial.println(timeboi);
 //
 //    Serial.print("Color Temp: "); Serial.print(colorTemp, DEC); Serial.print(" K - ");
 //    Serial.print("Lux: "); Serial.print(lux, DEC); Serial.print(" - ");
-   
+
 //    Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
 //  Serial.println(" ");
 //  timecounter += 1;
