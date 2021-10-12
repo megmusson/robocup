@@ -91,7 +91,7 @@ int turn = 0;
 float yaw;
 int yawChange;
 float watchdog = 0;
-
+int colourdiff = 30;
 //**********************************************************************************
 // Function Definitions
 //**********************************************************************************
@@ -123,13 +123,12 @@ void setup() {
   tcs.getRawData(&r, &g, &b, &c);
   delay(10);
   tcs.getRawData(&r, &g, &b, &c);
-  if (g > 800) {
-    homeboi = GREEN;
-    Serial.println("home is green");
-  } else if (b > 700) {
-    homeboi = BLUE;
-    Serial.println("home is blue");
-  }
+int redUP = r + colourdiff;
+int greenUp = g + colourdiff;
+int blueUp = b + colourdiff;
+int redLow = r - colourdiff;
+int greenLow = g - colourdiff;
+int blueLow = b - colourdiff;
 }
 
 //**********************************************************************************
@@ -404,19 +403,20 @@ void loop() {
 
 
   tcs.getRawData(&r, &g, &b, &c);
-  if (homeboi == BLUE && b > 700) {
-    onBase = true;
-    Serial.println("on blue");
-  } else if (homeboi == GREEN && g > 800) {
-    onBase = true;
-    Serial.println("home is green");
-  } else {
-    onBase = false;
-  }
+
+ if 
+
+
+ int redUP = r + colourdiff;
+int greenUp = g + colourdiff;
+int blueUp = b + colourdiff;
+int redLow = r - colourdiff;
+int greenLow = g - colourdiff;
+int blueLow = b - colourdiff;
 
 
 
-  if (timeboi > 100000 && onBase == true) {
+  if (timeboi > 100000 && colourUpLim == true && colourLowLim==true) {
     while (1) {
       Serial.println("BASE");
       stationary();
