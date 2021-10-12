@@ -3,11 +3,11 @@
 #include <Servo.h>
 
 #define STOP_SPEED 1500
-#define VARIABLE_SPEED 600
+#define VARIABLE_SPEED 500
 #define TURN_FACTOR 4/5
 
-#define leftMotorPin 2
-#define rightMotorPin 3
+#define leftMotorPin 7
+#define rightMotorPin 6
 
 Servo servoMotorLeft;      // create servo object to control a servo
 Servo servoMotorRight;      // create servo object to control a servo
@@ -36,7 +36,7 @@ void go_back() {
   //Serial.println("GO BACKWARDS ");
   int leftSpeed = 1100;
   int rightSpeed = 1100;
-  servoMotorLeft.writeMicroseconds(leftSpeed);
+  servoMotorLeft.writeMicroseconds(leftSpeed); 
   servoMotorRight.writeMicroseconds(rightSpeed);
 
 }

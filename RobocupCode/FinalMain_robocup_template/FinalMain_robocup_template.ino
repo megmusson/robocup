@@ -192,193 +192,193 @@ void pin_init() {
 void loop() {
 
 
-    collect_weight();
-//  servo_rotate();
-  servomove(10);
-pollSense();
-convertAllSense();
-
-
-  //  digitalWrite(trigPin, LOW);
-  //  delayMicroseconds(2);
-  //  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
-  //  digitalWrite(trigPin, HIGH);
-  //  delayMicroseconds(10);
-  //  digitalWrite(trigPin, LOW);
-  //  // Reads the echoPin, returns the sound wave travel time in microseconds
-  //  duration = pulseIn(echoPin, HIGH);
-  //  // Calculating the distance
-  //  backDistance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
-  //  backDistance = medianFilter.AddValue(backDistance);
-  //
-  //  Serial.print("Distance: ");
-  //  Serial.print(backDistance);
-  //  Serial.println(" cm");
-  //  delayMicroseconds(100);
-  //
-      Serial.print("right:");
-      Serial.print(rightDistance);
-      Serial.print(" left:");
-        Serial.print(leftDistance);
-        Serial.print(" front right:");
-        Serial.print(frontDistancer);
-        Serial.print(" front left: ");
-        Serial.println(frontDistancel);
-//        Serial.print(" Right Bottom:");
-//      Serial.print(brDistance);
-//      Serial.print(", ");
-//      Serial.print(" Right Top:");
-//      Serial.print(trDistance);
-//      Serial.print(", ");
-//  Serial.print(" Left Bottom:");
-//  Serial.print(blDistance);
-//  Serial.print(", ");
-//  Serial.print(" Left Top:");
-//  Serial.println(tlDistance);
-//      Serial.println(frontDistancer);
-  
-  if (frontDistancel > 20 && frontDistancer > 20 && backflag == 0) {
-
-    // Check if left sensor detects something, turn right if so
-    if (leftDistance < 15 && rightDistance > 15)  {
-      turn_right(moveSpeed);
-      //      Serial.println(micros());
-    }
-    else if (rightDistance < 15 && leftDistance > 15)  {
-      turn_left(moveSpeed);
-
-    }
-    else {
-      go_forward(moveSpeed);
-    }
-
-  }
-
-  // CASE If either front sensor detect somthing
-  else if (frontDistancer < 20 || frontDistancel < 20) {
-
-    // Check if left sensor detects something, turn right if so
-    if (leftDistance < 15 && rightDistance > 15 && backflag == 0)  {
-      turn_right(moveSpeed);
-
-    }
-
-    if (rightDistance < 15 && leftDistance > 15 && backflag == 0)  {
-      turn_left(moveSpeed);
-
-    }
-
-    // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
-    if (rightDistance > 15 && leftDistance > 15 && backflag == 0 )  {
-      turn_right(moveSpeed);
-    }
-
-    // If both left and right sensor detects something
-    if (rightDistance < 15 && leftDistance < 15 && backflag == 0)  {
-      backflag = 1;
-    }
-  }
-
-  else if (backflag == 1) {
-    while (rightDistance < 15 || leftDistance < 15) {
-      go_back();
-  
-    }
-
-    backflag = 0;
-    turn_right(moveSpeed);
-    delay(3000);
-
-  }
-
-
-  //  compare_right =  trDistance - brDistance;
-  //  compare_left =  - blDistance ;
-  //  Serial.print("Left comparison");
-  //  Serial.print(compare_left);
-
-  //  if (compare_right > DIFF_HEIGHT_RATIO) {
-  //    Serial.print("Weight Detected! ");
-  //    spinRightFlag = 1;
-  //    stationary();   // stop the robot
-  //    spin_right(moveSpeed);
-  //  }
-//  if ((blDistance < 15 && tlDistance > 25)) {
-//    Serial.print("Weight Detected! ");
-//    spinLeftFlag = 1;
-//    weight_pos = readservoleft();   // read weight position from servo
-//    stationary();
-//    spin_left(moveSpeed);
-//    delay(50);
-//    spinLeftFlag = 0;
+//    collect_weight();
+////  servo_rotate();
+//  servomove(10);
+//pollSense();
+//convertAllSense();
+//
+//
+//  //  digitalWrite(trigPin, LOW);
+//  //  delayMicroseconds(2);
+//  //  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
+//  //  digitalWrite(trigPin, HIGH);
+//  //  delayMicroseconds(10);
+//  //  digitalWrite(trigPin, LOW);
+//  //  // Reads the echoPin, returns the sound wave travel time in microseconds
+//  //  duration = pulseIn(echoPin, HIGH);
+//  //  // Calculating the distance
+//  //  backDistance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+//  //  backDistance = medianFilter.AddValue(backDistance);
+//  //
+//  //  Serial.print("Distance: ");
+//  //  Serial.print(backDistance);
+//  //  Serial.println(" cm");
+//  //  delayMicroseconds(100);
+//  //
+//      Serial.print("right:");
+//      Serial.print(rightDistance);
+//      Serial.print(" left:");
+//        Serial.print(leftDistance);
+//        Serial.print(" front right:");
+//        Serial.print(frontDistancer);
+//        Serial.print(" front left: ");
+//        Serial.println(frontDistancel);
+////        Serial.print(" Right Bottom:");
+////      Serial.print(brDistance);
+////      Serial.print(", ");
+////      Serial.print(" Right Top:");
+////      Serial.print(trDistance);
+////      Serial.print(", ");
+////  Serial.print(" Left Bottom:");
+////  Serial.print(blDistance);
+////  Serial.print(", ");
+////  Serial.print(" Left Top:");
+////  Serial.println(tlDistance);
+////      Serial.println(frontDistancer);
+//  
+//  if (frontDistancel > 20 && frontDistancer > 20 && backflag == 0) {
+//
+//    // Check if left sensor detects something, turn right if so
+//    if (leftDistance < 15 && rightDistance > 15)  {
+//      turn_right(moveSpeed);
+//      //      Serial.println(micros());
+//    }
+//    else if (rightDistance < 15 && leftDistance > 15)  {
+//      turn_left(moveSpeed);
+//
+//    }
+//    else {
+//      go_forward(moveSpeed);
+//    }
+//
 //  }
-  
-  // stop the robot
-  //    if (weight_pos < 30) {
-  //      Serial.print("Position <30 ");
-  //
-  //      spin_left(moveSpeed);
-  //      delay(50);
-  //      spinLeftFlag = 0;
-  //
-  //    }
-  //    else if (weight_pos < 60 && weight_pos > 30) {
-  //      Serial.print("30 < Position <60 ");
-  //
-  //      spin_left(moveSpeed);
-  //      delay(100);
-  //      spinLeftFlag = 0;
-  //
-  //    }
-  //
-  //    else if (weight_pos < 90 && weight_pos > 60) {
-  //      Serial.print("60 < Position < 90 ");
-  //
-  //      spin_left(moveSpeed);
-  //      delay(150);
-  //      spinLeftFlag = 0;
-  //
-  //    }
-  //
-  //    else if (weight_pos < 130 && weight_pos > 90) {
-  //      Serial.print("90 < Position < 120 ");
-  //
-  //      spin_left(moveSpeed);
-  //      delay(200);
-  //      spinLeftFlag = 0;
-  //
-  //    }
-  //    //int detected_pos = myServoRight.read();
-  //  }
-  //  else {
-  //    Serial.println("No Weight Detected");
-  //        myServoRight.write(pos);
-  //        myServoLeft.write(180-pos);
-  //  }
+//
+//  // CASE If either front sensor detect somthing
+//  else if (frontDistancer < 20 || frontDistancel < 20) {
+//
+//    // Check if left sensor detects something, turn right if so
+//    if (leftDistance < 15 && rightDistance > 15 && backflag == 0)  {
+//      turn_right(moveSpeed);
+//
+//    }
+//
+//    if (rightDistance < 15 && leftDistance > 15 && backflag == 0)  {
+//      turn_left(moveSpeed);
+//
+//    }
+//
+//    // If left and right sensor detect nothing, turn left (CHANGE THIS LATER)
+//    if (rightDistance > 15 && leftDistance > 15 && backflag == 0 )  {
+//      turn_right(moveSpeed);
+//    }
+//
+//    // If both left and right sensor detects something
+//    if (rightDistance < 15 && leftDistance < 15 && backflag == 0)  {
+//      backflag = 1;
+//    }
+//  }
+//
+//  else if (backflag == 1) {
+//    while (rightDistance < 15 || leftDistance < 15) {
+//      go_back();
+//  
+//    }
+//
+//    backflag = 0;
+//    turn_right(moveSpeed);
+//    delay(3000);
+//
+//  }
+//
+//
+//  //  compare_right =  trDistance - brDistance;
+//  //  compare_left =  - blDistance ;
+//  //  Serial.print("Left comparison");
+//  //  Serial.print(compare_left);
+//
+//  //  if (compare_right > DIFF_HEIGHT_RATIO) {
+//  //    Serial.print("Weight Detected! ");
+//  //    spinRightFlag = 1;
+//  //    stationary();   // stop the robot
+//  //    spin_right(moveSpeed);
+//  //  }
+////  if ((blDistance < 15 && tlDistance > 25)) {
+////    Serial.print("Weight Detected! ");
+////    spinLeftFlag = 1;
+////    weight_pos = readservoleft();   // read weight position from servo
+////    stationary();
+////    spin_left(moveSpeed);
+////    delay(50);
+////    spinLeftFlag = 0;
+////  }
+//  
+//  // stop the robot
+//  //    if (weight_pos < 30) {
+//  //      Serial.print("Position <30 ");
+//  //
+//  //      spin_left(moveSpeed);
+//  //      delay(50);
+//  //      spinLeftFlag = 0;
+//  //
+//  //    }
+//  //    else if (weight_pos < 60 && weight_pos > 30) {
+//  //      Serial.print("30 < Position <60 ");
+//  //
+//  //      spin_left(moveSpeed);
+//  //      delay(100);
+//  //      spinLeftFlag = 0;
+//  //
+//  //    }
+//  //
+//  //    else if (weight_pos < 90 && weight_pos > 60) {
+//  //      Serial.print("60 < Position < 90 ");
+//  //
+//  //      spin_left(moveSpeed);
+//  //      delay(150);
+//  //      spinLeftFlag = 0;
+//  //
+//  //    }
+//  //
+//  //    else if (weight_pos < 130 && weight_pos > 90) {
+//  //      Serial.print("90 < Position < 120 ");
+//  //
+//  //      spin_left(moveSpeed);
+//  //      delay(200);
+//  //      spinLeftFlag = 0;
+//  //
+//  //    }
+//  //    //int detected_pos = myServoRight.read();
+//  //  }
+//  //  else {
+//  //    Serial.println("No Weight Detected");
+//  //        myServoRight.write(pos);
+//  //        myServoLeft.write(180-pos);
+//  //  }
+//
+//  //    if (timecounter %15 == 0) {
+//  //    tcs.getRawData(&r, &g, &b, &c);
+//  //    colorTemp = tcs.calculateColorTemperature(r, g, b);
+//  //      Serial.print("COLOUR IS READ ");
+//  //
+//  //    }
+//  //    if (r > g && r > b && base == 1) {
+//  //
+//  //    }
+//  //    if (g > r && g > b && base == 0) {
+//  //
+//  //    }
+//
+//  //    Serial.print("Color Temp: "); Serial.print(colorTemp, DEC); Serial.print(" K - ");
+//  //    Serial.print("Lux: "); Serial.print(lux, DEC); Serial.print(" - ");
+//  //    Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
+//  //    Serial.print("G: "); Serial.print(g, DEC); Serial.print(" ");
+//  //    Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
+//  //    Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
+//  //  Serial.println(" ");
+//  timecounter += 1;
+//  //  Serial.print("timecounter ");
+//  //  Serial.print(timecounter);
 
-  //    if (timecounter %15 == 0) {
-  //    tcs.getRawData(&r, &g, &b, &c);
-  //    colorTemp = tcs.calculateColorTemperature(r, g, b);
-  //      Serial.print("COLOUR IS READ ");
-  //
-  //    }
-  //    if (r > g && r > b && base == 1) {
-  //
-  //    }
-  //    if (g > r && g > b && base == 0) {
-  //
-  //    }
-
-  //    Serial.print("Color Temp: "); Serial.print(colorTemp, DEC); Serial.print(" K - ");
-  //    Serial.print("Lux: "); Serial.print(lux, DEC); Serial.print(" - ");
-  //    Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
-  //    Serial.print("G: "); Serial.print(g, DEC); Serial.print(" ");
-  //    Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
-  //    Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
-  //  Serial.println(" ");
-  timecounter += 1;
-  //  Serial.print("timecounter ");
-  //  Serial.print(timecounter);
-
-
+go_forward(moveSpeed  );
 }
