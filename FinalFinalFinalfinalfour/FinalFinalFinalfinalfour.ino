@@ -142,17 +142,39 @@ void setup() {
   while (bno.begin() != BNO::eStatusOK) {
     Serial.println("bno begin faild");
     printLastOperateStatus(bno.lastOperateStatus);
-    delay(200);
+    delay(100);
   }
   Serial.println("bno begin success");
-
+  collect_weight();
+//  Serial.print("Time start");
+//  Serial.print(millis() / 1000);
+//  ////////////////////////////////////////////////////////////////////////////////////////////////
+//  go_forward(moveSpeed); ////////////////////////////////////////////////////////////////////////////////////////////////
+//  delay(3900);////////////////////////////////////////////////////////////////////////////////////////////////
+//  ////////////////////////////////////////////////////////////////////////////////////////////////
+//  turn_right(moveSpeed);
+//  delay(570);
+//  go_forward(moveSpeed); ////////////////////////////////////////////////////////////////////////////////////////////////
+//  delay(2600);
+//  turn_left(moveSpeed);
+//  delay(570);
 }
 unsigned long timeboi;
+int Time;
 
 void loop() {
-
-  
   timeboi = millis();
+
+  //while ((timeboi/1000) < 3){
+  //  go_forward(moveSpeed);
+  //  Serial.print("Initial go Forward");
+  //    Serial.print("Millis");
+  //    Serial.print(millis());
+  //
+  //    timeboi = millis();
+  //    watchdogtimer = 0;
+  //}
+
   collect_weight();
   //Serial.println(timeboi);
 
@@ -168,11 +190,7 @@ void loop() {
   frontDistancel = median4Filter.AddValue(frontDistancel);
   MlDistance = medianMlFilter.AddValue(MlDistance);
   MrDistance = medianMrFilter.AddValue(MrDistance);
-//
-//        Serial.print(" Right distance right: ");
-//      Serial.print(rightDistance);
-//      Serial.print(" Left distance right: ");
-//      Serial.print(leftDistance);
+
 
   ///////////////////////////////////////IF STATEMENT 1- No sensors triggered everything clear//////////////////////////////////////////////////
   if (frontDistancer > FRONTLIMIT && frontDistancel > FRONTLIMIT && MlDistance > CORNERLIMIT && MrDistance > CORNERLIMIT && backflag == 0) {
@@ -315,7 +333,7 @@ void loop() {
     }
   }
 
-  if ( backflag == 0 &&(frontDistancer < FRONTLIMIT) && (frontDistancel < FRONTLIMIT) && (MlDistance < CORNERLIMIT) &&  (frontDistancel < FRONTLIMIT) &&  (leftDistance < SIDELIMIT) &&  (rightDistance < SIDELIMIT)) {
+  if ( backflag == 0 && (frontDistancer < FRONTLIMIT) && (frontDistancel < FRONTLIMIT) && (MlDistance < CORNERLIMIT) &&  (frontDistancel < FRONTLIMIT) &&  (leftDistance < SIDELIMIT) &&  (rightDistance < SIDELIMIT)) {
     backflag = 1;
     Serial.print("BACKFLAG IS SET");
 
@@ -324,7 +342,7 @@ void loop() {
   if (backflag == 1) {
     while (rightDistance < SIDELIMIT || leftDistance < SIDELIMIT) {
       rightDistance = right.getDistance();
-   leftDistance = left.getDistance();
+      leftDistance = left.getDistance();
       Serial.print(" Right distance: ");
       Serial.print(rightDistance);
       Serial.print(" Left distance: ");
@@ -343,9 +361,11 @@ void loop() {
   sEul = bno.getEul();
   newYaw = sEul.head;
   roll = sEul.roll;
-//           Serial.print("yaw");
-//           Serial.print(newYaw);
-//           Serial.println(" ");
+  //             Serial.print("watchdogtimer:");
+  //           Serial.print(watchdogtimer);
+  //           Serial.print("roll");
+  //           Serial.print(roll);
+  //           Serial.println(" ");
 
   if (abs(sEul.roll) > 8) {
     Serial.println("RAMP, GO DOWN");
@@ -356,11 +376,11 @@ void loop() {
 
   }
 
-  if ((newYaw - oldYaw) > 15) {
+  if ((abs(newYaw - oldYaw)) > 15) {
     oldYaw = newYaw;
     watchdogtimer = 0;
   }
-  if (watchdogtimer > 200) {
+  if (watchdogtimer > 75) {
     Serial.println("WATCHDOG is Activated");
     go_back();
     delay(600);
@@ -371,22 +391,23 @@ void loop() {
   }
   watchdogtimer += 1;
 
-//
-//
-    
-    Serial.print("  right: ");
-    Serial.print(rightDistance);
-    Serial.print("  left: ");
-    Serial.print(leftDistance);
-//    Serial.print(" front right: ");
-//    Serial.print(frontDistancer);
-//    Serial.print(" front left: ");
-//    Serial.print(frontDistancel);
-//    Serial.print("Mid Left: ");
-//    Serial.print(MlDistance);
-//    Serial.print(", ");
-//    Serial.print("Mid right: ");
-//    Serial.println(MrDistance);
+  //
+  //
+  Serial.print("Time");
+  Serial.print(millis() / 1000 );
+  //    Serial.print("  right: ");
+  //    Serial.print(rightDistance);
+  //    Serial.print("  left: ");
+  //    Serial.print(leftDistance);
+  //    Serial.print(" front right: ");
+  //    Serial.print(frontDistancer);
+  //    Serial.print(" front left: ");
+  //    Serial.print(frontDistancel);
+  //    Serial.print("Mid Left: ");
+  //    Serial.print(MlDistance);
+  //    Serial.print(", ");
+  //    Serial.print("Mid right: ");
+  //    Serial.println(MrDistance);
 
 }
 ///////////////////////////COLOUR CODE///////////////////////////////////////
